@@ -12,6 +12,7 @@ final class Menus implements Module {
 
 	public static function hooks() {
 		add_filter( 'wp_nav_menu_args', array( __CLASS__, 'translate_menu' ) );
+		add_filter( 'wp_nav_menu_objects', array( __CLASS__, 'localize_front_page_links' ), 20, 2 );
 		add_filter( 'wp_nav_menu_items', array( __CLASS__, 'add_language_switcher' ), 20, 2 );
 		add_action( 'admin_menu', array( __CLASS__, 'admin_menu' ) );
 		add_action( 'admin_post_openlingua_save_menus', array( __CLASS__, 'save' ) );
@@ -48,6 +49,28 @@ final class Menus implements Module {
 		$menu_id = self::get( $args['theme_location'] );
 		if ( $menu_id ) { $args['menu'] = $menu_id; }
 		return $args;
+	}
+
+	/**
+	 * WordPress stores one physical static front-page ID. Its translated pages
+	 * still have their own normal permalink (for example /es/inicio/), but a
+	 * navigation item representing that front page must use the language root
+	 * (/es/) so it behaves as "Home" in every language.
+	 */
+	public static function localize_front_page_links( $items, $args = null ) {
+		if ( is_admin() || ! Languages::is_valid( Languages::current() ) ) { return $items; }
+		$front_page_id = absint( get_option( 'page_on_front' ) );
+		if ( ! $front_page_id ) { return $items; }
+		$front_page_ids = \OpenLingua\Translations::group( 'post', $front_page_id );
+		$front_page_ids[] = $front_page_id;
+		$front_page_ids = array_unique( array_map( 'absint', $front_page_ids ) );
+		$home_url = Languages::url( home_url( '/' ), Languages::current() );
+
+		foreach ( (array) $items as $item ) {
+			if ( ! is_object( $item ) || 'post_type' !== ( $item->type ?? '' ) || 'page' !== ( $item->object ?? '' ) ) { continue; }
+			if ( in_array( absint( $item->object_id ?? 0 ), $front_page_ids, true ) ) { $item->url = $home_url; }
+		}
+		return $items;
 	}
 
 	public static function add_language_switcher( $items, $args ) {

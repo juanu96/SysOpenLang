@@ -2,9 +2,9 @@
 Contributors: juanu96
 Tags: multilingual, translation, languages, custom post types, localization
 Requires at least: 6.4
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.18.1
+Stable tag: 1.20.35
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -75,7 +75,7 @@ REST endpoints:
 WP-CLI:
 
 * `wp openlingua languages`
-* `wp openlingua export --file=openlingua.json`
+* `wp openlingua export > openlingua.json`
 * `wp openlingua import --file=openlingua.json`
 * `wp openlingua diagnostics`
 
@@ -119,6 +119,74 @@ No. OpenLingua outputs language-aware URLs and SEO metadata, but indexing decisi
 They are preserved by default. See the Privacy section for the explicit cleanup options.
 
 == Changelog ==
+
+= 1.20.14 =
+* Adds language-scoped public taxonomy slugs, so translated term URLs can use the requested slug while WordPress retains a collision-safe internal slug.
+
+= 1.20.13 =
+* Adds a confirmed maintenance repair for taxonomy relationships on existing translated posts.
+
+= 1.20.12 =
+* Synchronizes all taxonomy relationships when a translated post is created or saved, including repairs for translations created before taxonomy synchronization existed.
+
+= 1.20.11 =
+* Create linked taxonomy translations on demand for translated posts, preserve same-language parent hierarchies, and accept language selection on REST term queries.
+
+= 1.20.10 =
+* Automatically resolve translated taxonomy slug collisions with stable language and numeric suffixes.
+
+= 1.20.9 =
+* Keep translated taxonomy names unchanged, use native unique WordPress slugs, and retain default-language taxonomy fallbacks until a translation exists.
+
+= 1.20.8 =
+* Add default-term fallbacks and localized public taxonomy slugs, so translations can keep the same public slug without WordPress internal collisions.
+
+= 1.20.7 =
+* Filter normal frontend taxonomy queries by the current OpenLingua language, including categories generated dynamically by third-party modules.
+
+= 1.20.6 =
+* Preserve deferred WPGraphQL resolver values instead of converting them to text during the listing title fallback.
+
+= 1.20.5 =
+* Show omitted Divi text defaults such as Divi Blog Extras “Read More” in the translation editor and write the translated setting into the target shortcode.
+
+= 1.20.4 =
+* Detect third-party Divi modules and their registered text controls directly in the translation editor, while excluding technical configuration fields.
+
+= 1.20.3 =
+* Return a translated listing title when an empty ACF property-name field is requested through WPGraphQL.
+
+= 1.20.2 =
+* Preserve source-language publication ordering for default WPGraphQL translated listings.
+
+= 1.20.1 =
+* Expose the OpenLingua language filter in native CPT-to-taxonomy GraphQL connection `where` inputs.
+
+= 1.20.0 =
+
+* Filter WPGraphQL category, tag, and custom-taxonomy connections to the requested OpenLingua language, including terms connected to a custom post type.
+
+= 1.19.4 =
+
+* Keep normal frontend content queries tied to their requested URL language, even when a browser prefetches a different-language URL with the previous page as its referrer.
+
+= 1.19.3 =
+
+* Limit secondary-query language filtering to public content post types, keeping internal Divi Theme Builder layouts intact.
+
+= 1.19.2 =
+
+* Filter secondary public WordPress queries, including third-party Divi modules and widgets, to the active OpenLingua language.
+* Preserve language filtering for AJAX content queries using an explicit language, the referring language URL, or a configured language domain.
+
+= 1.19.1 =
+
+* Keep shared WPGraphQL media attachments available while filtering their parent content by language.
+
+= 1.19.0 =
+
+* Filter WPGraphQL post and custom-post-type connections by the active OpenLingua language.
+* Add an optional `openlinguaLanguage` connection argument and request-level language overrides.
 
 = 1.18.1 =
 * Added lightweight local SVG flags to make setup consistent across browsers and operating systems.

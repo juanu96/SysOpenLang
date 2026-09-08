@@ -60,7 +60,11 @@ final class REST {
 				if ( ! $taxonomy || ( ! $taxonomy->public && ! current_user_can( $taxonomy->cap->manage_terms ) ) ) { continue; }
 				$url = get_term_link( $term );
 			}
-			if ( ! is_wp_error( $url ) ) { $items[ $language ] = array( 'id' => absint( $element_id ), 'url' => $url ); }
+			// A term relationship is still useful to headless consumers when another
+			// plugin prevents WordPress from generating its permalink in this request.
+			// Never hide the translation ID: clients can query that term directly and
+			// a subsequent normal frontend request can resolve its public URL.
+			$items[ $language ] = array( 'id' => absint( $element_id ), 'url' => is_wp_error( $url ) ? '' : $url );
 		}
 		return rest_ensure_response( array( 'type' => $type, 'source_id' => $id, 'translations' => $items ) );
 	}

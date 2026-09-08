@@ -8,6 +8,35 @@ function __( $text ) { return $text; }
 function sanitize_key( $value ) { return preg_replace( '/[^a-z0-9_\-]/', '', strtolower( $value ) ); }
 function absint( $value ) { return abs( (int) $value ); }
 
+class ET_Builder_Module {}
+class OpenLingua_Test_Third_Party_Module extends ET_Builder_Module {
+	public function get_fields() {
+		return array(
+			'cta_copy'      => array( 'type' => 'text', 'label' => 'Callout copy', 'default' => 'Welcome' ),
+			'marketing_url' => array( 'type' => 'text', 'label' => 'Marketing URL' ),
+			'show_more' => array( 'type' => 'yes_no_button', 'default' => 'on' ),
+			'read_more_text' => array( 'type' => 'text', 'label' => 'Read More Text', 'show_if' => array( 'show_more' => 'on' ) ),
+			'load_more_text' => array( 'type' => 'text', 'label' => 'Load More Text', 'show_if' => array( 'show_load_more' => 'on' ) ),
+			'show_load_more' => array( 'type' => 'yes_no_button', 'default' => 'off' ),
+		);
+	}
+}
+class OpenLingua_Test_Blog_Extras_Module extends ET_Builder_Module {
+	public function get_fields() {
+		return array(
+			'all_posts_text' => array( 'type' => 'text', 'label' => 'All Posts Text', 'default' => 'All' ),
+			'show_more' => array( 'type' => 'yes_no_button', 'default' => 'on' ),
+			'read_more_text' => array( 'type' => 'text', 'label' => 'Read More Text', 'show_if' => array( 'show_more' => 'on' ) ),
+			'no_results_text' => array( 'type' => 'text', 'label' => 'No Results Text' ),
+		);
+	}
+}
+
+$shortcode_tags = array(
+	'partner_widget' => array( new OpenLingua_Test_Third_Party_Module(), 'render' ),
+	'et_pb_blog_extras' => array( new OpenLingua_Test_Blog_Extras_Module(), 'render' ),
+);
+
 require dirname( __DIR__ ) . '/src/class-divi-content.php';
 
 function divi_assert( $condition, $message ) {
@@ -44,6 +73,41 @@ divi_assert( 'Independent module' === $values['divi_vendor_card_1_card_heading']
 divi_assert( ! isset( $values['divi_dica_divi_carousel_1_content'] ), 'does not duplicate text from a third-party container module' );
 divi_assert( false === strpos( implode( '|', array_keys( $values ) ), 'global_colors_info' ), 'ignores encoded Divi global color metadata' );
 divi_assert( false === strpos( implode( '|', array_keys( $values ) ), 'revslider' ), 'protects encoded Slider Revolution shortcodes from translation' );
+
+$registered_module = '[partner_widget marketing_url="https://example.test/offer"][/partner_widget]';
+$registered_values = \OpenLingua\Divi_Content::values( $registered_module );
+divi_assert( 'Welcome' === $registered_values['divi_partner_widget_1_cta_copy'], 'detects an omitted declared text default from a registered third-party Divi module' );
+divi_assert( 'Read More' === $registered_values['divi_partner_widget_1_read_more_text'], 'infers an omitted render-time default from an active third-party text control definition' );
+divi_assert( ! isset( $registered_values['divi_partner_widget_1_load_more_text'] ), 'does not invent values for inactive optional third-party text controls' );
+divi_assert( ! isset( $registered_values['divi_partner_widget_1_marketing_url'] ), 'keeps technical fields excluded even when a third-party module declares them as text controls' );
+
+$registered_translation = \OpenLingua\Divi_Content::apply( $registered_module, array(
+	'divi_partner_widget_1_cta_copy' => 'Bienvenido',
+	'divi_partner_widget_1_read_more_text' => 'Leer más',
+) );
+divi_assert( false !== strpos( $registered_translation, 'cta_copy="Bienvenido"' ) && false !== strpos( $registered_translation, 'read_more_text="Leer más"' ), 'writes translations for omitted module defaults into the target shortcode' );
+
+$captured_runtime_translation = \OpenLingua\Divi_Content::apply( '[et_pb_blog_extras show_more="on"][/et_pb_blog_extras]', array(
+	'divi_et_pb_blog_extras_1_read_more_text' => 'Leer más',
+), array(
+	'divi_et_pb_blog_extras_1_read_more_text' => 'Read More',
+) );
+divi_assert( false !== strpos( $captured_runtime_translation, 'read_more_text="Leer más"' ), 'writes a translation when a third-party default is available only from captured runtime data' );
+
+$blog_extras_defaults = '[et_pb_blog_extras show_more="on"][/et_pb_blog_extras]';
+$blog_extras_default_values = \OpenLingua\Divi_Content::values( $blog_extras_defaults );
+divi_assert( 'Read More' === $blog_extras_default_values['divi_et_pb_blog_extras_1_read_more_text'], 'detects Divi Blog Extras read-more text when Divi omits its default from the shortcode' );
+divi_assert( 'All' === $blog_extras_default_values['divi_et_pb_blog_extras_1_all_posts_text'], 'detects Divi Blog Extras declared text defaults when omitted from the shortcode' );
+
+$blog_extras = '[et_pb_blog_extras all_posts_text="All Properties" read_more_text="Read More" no_results_text="No matching properties" load_more_text="Load More" show_less_text="Show Less" prev_text="Previous" next_text="Next" post_type="listing" posts_per_page="9"][/et_pb_blog_extras]';
+$blog_extras_values = \OpenLingua\Divi_Content::values( $blog_extras );
+foreach ( array(
+	'all_posts_text' => 'All Properties', 'read_more_text' => 'Read More', 'no_results_text' => 'No matching properties',
+	'load_more_text' => 'Load More', 'show_less_text' => 'Show Less', 'prev_text' => 'Previous', 'next_text' => 'Next',
+) as $field => $value ) {
+	divi_assert( $value === $blog_extras_values[ 'divi_et_pb_blog_extras_1_' . $field ], 'detects Divi Blog Extras internal text field ' . $field );
+}
+divi_assert( ! isset( $blog_extras_values['divi_et_pb_blog_extras_1_post_type'] ) && ! isset( $blog_extras_values['divi_et_pb_blog_extras_1_posts_per_page'] ), 'does not expose Divi Blog Extras query configuration fields' );
 
 $translated = \OpenLingua\Divi_Content::apply( $content, array(
 	'divi_et_pb_text_1_content' => '<h2>Energía limpia</h2><p>Para todos.</p>',

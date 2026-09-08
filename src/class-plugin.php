@@ -11,6 +11,7 @@ final class Plugin {
 		Content::hooks();
 		Gutenberg_Content::hooks();
 		Global_Content::hooks();
+		Divi_Content::hooks();
 		Divi_Theme_Builder::hooks();
 		Translation_Editor::hooks();
 		Taxonomies::hooks();
@@ -19,6 +20,7 @@ final class Plugin {
 		Routing::hooks();
 		SEO::hooks();
 		REST::hooks();
+		GraphQL::hooks();
 		Admin::hooks();
 		Module_Registry::boot( apply_filters( 'openlingua_modules', array(
 			\OpenLingua\Modules\Language_Settings::class,
@@ -106,6 +108,7 @@ final class Plugin {
 		} else {
 			if ( ! term_exists( $target_id ) ) { return ''; }
 			$url = get_term_link( $target_id );
+			if ( ! is_wp_error( $url ) ) { $url = Languages::url( $url, $language ); }
 		}
 		return ! is_wp_error( $url ) && is_string( $url ) ? $url : '';
 	}

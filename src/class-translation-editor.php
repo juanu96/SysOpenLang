@@ -65,7 +65,7 @@ final class Translation_Editor {
 			'post_excerpt' => array( 'label' => __( 'Excerpt', 'openlingua' ), 'source' => $source->post_excerpt, 'target' => $target->post_excerpt, 'rows' => 4 ),
 		);
 		if ( ! $is_divi && ! $is_gutenberg && ! $content_extractor ) { $fields['post_content'] = array( 'label' => __( 'Main content', 'openlingua' ), 'source' => $source->post_content, 'target' => $target->post_content, 'rows' => 18 ); }
-		$divi_segments = $is_divi ? Divi_Content::extract( $source->post_content ) : array();
+		$divi_segments = $is_divi ? Divi_Content::extract_for_post( $source->ID, $source->post_content ) : array();
 		$divi_snapshot = $is_divi ? get_post_meta( $target->ID, Divi_Content::SOURCE_SNAPSHOT_META, true ) : array();
 		$divi_snapshot = is_array( $divi_snapshot ) ? $divi_snapshot : array();
 		$target_divi = $is_divi ? Divi_Content::aligned_values( $source->post_content, $target->post_content, $divi_snapshot ) : array();
@@ -225,12 +225,14 @@ final class Translation_Editor {
 		if ( $is_divi ) {
 			$submitted = self::posted_array( 'divi_translation' );
 			$allowed = array();
-			foreach ( Divi_Content::extract( $source->post_content ) as $segment ) {
+			foreach ( Divi_Content::extract_for_post( $source_id, $source->post_content ) as $segment ) {
 				if ( ! array_key_exists( $segment['id'], $submitted ) ) { continue; }
 				$value = $submitted[ $segment['id'] ];
 				$allowed[ $segment['id'] ] = 'attribute' === $segment['kind'] ? sanitize_text_field( $value ) : ( current_user_can( 'unfiltered_html' ) ? $value : wp_kses_post( $value ) );
 			}
-			$content = Divi_Content::apply( $source->post_content, $allowed );
+			// Use the same runtime defaults that made third-party module controls
+			// visible in this editor; otherwise omitted shortcode defaults are lost.
+			$content = Divi_Content::apply_for_post( $source_id, $source->post_content, $allowed );
 			$content = Divi_Content::restore_embedded_shortcodes( $source->post_content, $content );
 		} elseif ( $is_gutenberg ) {
 			$submitted = self::posted_array( 'gutenberg_translation' );
@@ -267,7 +269,7 @@ final class Translation_Editor {
 			}
 			$content_extractor->apply( $source, $target, $allowed, $target_row ? $target_row->language : '' );
 		}
-		if ( $is_divi ) { update_post_meta( $target_id, Divi_Content::SOURCE_SNAPSHOT_META, Divi_Content::source_snapshot( $source->post_content ) ); }
+		if ( $is_divi ) { update_post_meta( $target_id, Divi_Content::SOURCE_SNAPSHOT_META, Divi_Content::source_snapshot_for_post( $source_id, $source->post_content ) ); }
 		if ( $is_gutenberg ) { update_post_meta( $target_id, Gutenberg_Content::SOURCE_SNAPSHOT_META, Gutenberg_Content::source_snapshot( $source->post_content ) ); }
 		$acf_translation = self::posted_array( 'acf_translation' );
 		ACF_Content::save( $source_id, $target_id, $acf_translation, current_user_can( 'unfiltered_html' ) );
@@ -275,6 +277,8 @@ final class Translation_Editor {
 		$seo_translation = self::posted_array( 'seo_translation' );
 		SEO::save_translation_fields( $source_id, $target_id, $seo_translation );
 		\OpenLingua\Modules\Commerce::save_translation_fields( $source_id, $target_id, self::posted_array( 'commerce_translation' ) );
+		$term_sync = Taxonomies::synchronize_post_terms( $source_id, $target_id, $target_row ? $target_row->language : '' );
+		if ( is_wp_error( $term_sync ) ) { wp_die( esc_html( $term_sync->get_error_message() ) ); }
 		Translation_Memory::learn_post( $source_id, $target_id );
 		update_post_meta( $target_id, \OpenLingua\Modules\Workflow::STATUS_META, $status );
 		\OpenLingua\Modules\Workflow::mark_created( $target_id, $source_id );

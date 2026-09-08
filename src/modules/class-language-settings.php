@@ -144,11 +144,11 @@ final class Language_Settings implements Module {
 		$menu_locations = array_values( array_intersect( $registered_locations, array_map( 'sanitize_key', (array) ( $switcher['menu_locations'] ?? array() ) ) ) );
 		$clean_switcher = array( 'show_flag' => ! empty( $switcher['show_flag'] ), 'show_name' => ! empty( $switcher['show_name'] ), 'show_native_name' => ! empty( $switcher['show_native_name'] ), 'show_current' => ! empty( $switcher['show_current'] ), 'dropdown' => ! empty( $switcher['dropdown'] ), 'footer' => ! empty( $switcher['footer'] ), 'missing' => 'hide', 'menu_locations' => $menu_locations, 'menu_position' => 'first' === ( $switcher['menu_position'] ?? '' ) ? 'first' : 'last' );
 		$hidden = array_values( array_intersect( array_keys( $enabled ), array_map( 'sanitize_key', isset( $_POST['hidden_languages'] ) ? (array) wp_unslash( $_POST['hidden_languages'] ) : array() ) ) );
-		$submitted_order = isset( $_POST['language_order'] ) ? (array) wp_unslash( $_POST['language_order'] ) : array();
+		$submitted_order = isset( $_POST['language_order'] ) ? map_deep( (array) wp_unslash( $_POST['language_order'] ), 'sanitize_text_field' ) : array();
 		$order_values = array();
 		foreach ( array_keys( $enabled ) as $code ) { $order_values[ $code ] = absint( $submitted_order[ $code ] ?? count( $order_values ) ); }
 		uksort( $order_values, static function ( $left, $right ) use ( $order_values ) { return $order_values[ $left ] === $order_values[ $right ] ? strcmp( $left, $right ) : $order_values[ $left ] <=> $order_values[ $right ]; } );
-		$submitted_fallbacks = isset( $_POST['fallbacks'] ) ? (array) wp_unslash( $_POST['fallbacks'] ) : array();
+		$submitted_fallbacks = isset( $_POST['fallbacks'] ) ? map_deep( (array) wp_unslash( $_POST['fallbacks'] ), 'sanitize_key' ) : array();
 		$fallbacks = array();
 		foreach ( array_keys( $enabled ) as $code ) {
 			$fallback = sanitize_key( $submitted_fallbacks[ $code ] ?? '' );

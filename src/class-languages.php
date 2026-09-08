@@ -78,6 +78,9 @@ final class Languages {
 		if ( ! self::is_valid( $code ) || ! $url ) {
 			return $url;
 		}
+		if ( 0 === strpos( trim( (string) $url ), '#' ) ) {
+			return $url;
+		}
 
 		$settings   = array_replace( array( 'url_mode' => 'directory', 'domains' => array() ), (array) get_option( 'openlingua_language_settings', array() ) );
 		if ( 'query' === $settings['url_mode'] ) { return add_query_arg( 'lang', $code, remove_query_arg( 'lang', $url ) ); }

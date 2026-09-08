@@ -1,5 +1,172 @@
 # Changelog
 
+## 1.20.35
+- Prevent Divi color and anchor values from being rewritten as localized URLs.
+- Return fallback shortcode strings without REST errors when a dynamic shortcode is unavailable during the REST request.
+
+## 1.20.34
+
+- Resolve Plugin Check errors for the taxonomy maintenance notice and prepared taxonomy lookup.
+- Normalize public language hints and language-settings arrays before validation.
+
+## 1.20.33
+
+- Emit OpenLingua WP-CLI exports to standard output instead of writing to arbitrary filesystem paths.
+- Limit the unfinished setup notice to OpenLingua administration screens.
+
+## 1.20.32
+
+- Declare compatibility tested through WordPress 7.1 for the WordPress.org plugin directory.
+
+## 1.20.31
+
+- Ignore stale source post-term relationships and deleted taxonomy parents during translation saves, while continuing to synchronize every valid taxonomy assignment.
+
+## 1.20.30
+
+- Keep captured runtime defaults throughout the save path, so translations for text that a third-party Divi module omits from its stored shortcode are written into the translated layout instead of being discarded.
+
+## 1.20.29
+
+- Preserve third-party Divi text defaults discovered while the original page renders, so they remain editable when the OpenLingua editor runs in an admin request where the third-party module is not registered.
+
+## 1.20.28
+
+- Keep Divi module strings eligible for the dynamic shortcode endpoint when a REST request runs before Divi repopulates WordPress's shortcode registry.
+
+## 1.20.27
+
+- Discover text controls from every registered third-party Divi module and infer active render-time UI defaults from each module's own field definition, so omitted controls such as a module's read-more label appear in the page translation editor without a plugin-specific list.
+- Detect visible text from registered third-party shortcodes on source-language renders, while preventing target-language fallback output from overwriting discovered source strings.
+
+## 1.20.26
+
+- Make native WordPress menu items that represent the configured static front page, including its translated page, resolve to the current language root instead of that page's individual permalink.
+
+## 1.20.25
+
+- Make Divi module links that point to the site home (including Menu module logos and Image module links) resolve to the currently visited language without changing external or explicit page URLs.
+
+## 1.20.24
+
+- Keep translated term IDs available from the public translation endpoint even when a third-party rewrite rule cannot create a permalink in that request.
+
+## 1.20.23
+
+- Make root custom-taxonomy collections language-aware before WordPress and WPGraphQL apply their internal term query, including legacy terms attached to translated posts.
+
+## 1.20.22
+- Preserve explicit term IDs during WPGraphQL deferred loading so translated custom taxonomies are not re-filtered as the default language.
+
+## 1.20.21
+- Detect deferred WPGraphQL post-to-taxonomy connections by their GraphQL parent type so custom terms remain visible for every post type.
+
+## 1.20.20
+- Keep native custom-taxonomy terms visible on WPGraphQL post-to-taxonomy connections, including third-party and legacy term groups.
+
+## 1.20.19
+- Preserve every native custom-taxonomy assignment when REST, WPGraphQL or a third-party module reads terms for an already language-scoped post.
+
+## 1.20.18
+- Repair post-to-term relationships directly from WordPress's native relationship table, including taxonomies that a third-party plugin did not register against the post type.
+
+## 1.20.17
+
+- Make the existing-post taxonomy repair read native WordPress term relationships directly when a third-party taxonomy lookup suppresses them, so legacy translated CPTs are repaired rather than silently left without terms.
+
+## 1.20.16
+
+- Keep translated custom-taxonomy terms visible to WordPress archives, WPGraphQL and third-party `get_terms()` consumers when legacy relationship rows are incomplete but the term is already assigned to content in the requested language.
+- Show an existing original-term relationship accurately in the native taxonomy editor selector.
+- Honor explicit WPGraphQL term-language requests even though WPGraphQL suppresses ordinary WordPress term filters.
+
+## 1.20.15
+
+- Allow independently created custom-taxonomy terms to be explicitly linked to their original from the native term editor, preserving the existing term, metadata and public URL.
+- Prevent repair routines from guessing taxonomy relationships from names or slugs, which could silently join unrelated terms on multilingual sites.
+
+## 1.20.14
+
+- Separate language-scoped public taxonomy slugs from WordPress's collision-safe internal term slugs and resolve them on incoming public URLs.
+
+## 1.20.13
+
+- Add a confirmed maintenance action that repairs taxonomy relationships on existing translated posts in safe bounded batches.
+
+## 1.20.12
+
+- Synchronize every taxonomy relationship on translated posts when they are created or saved, repairing legacy source-language term IDs with their matching target-language terms.
+
+## 1.20.11
+
+- Create linked taxonomy translations on demand for translated posts, preserve same-language parent hierarchies, and accept language selection on REST term queries.
+
+## 1.20.10
+
+- Automatically resolve translated taxonomy slug collisions with stable language and numeric suffixes.
+
+## 1.20.9
+
+- Keep translated taxonomy names unchanged, use native unique WordPress slugs, and retain default-language taxonomy fallbacks until a translation exists.
+
+## 1.20.8
+
+- Add default-term fallbacks and localized public taxonomy slugs, so translations can keep the same public slug without WordPress internal collisions.
+
+## 1.20.7
+
+- Filter normal frontend taxonomy queries by the current OpenLingua language, including categories generated dynamically by third-party modules.
+
+## 1.20.6
+
+- Preserve deferred WPGraphQL resolver values instead of converting them to text during the listing title fallback.
+
+## 1.20.5
+
+- Show omitted Divi text defaults such as Divi Blog Extras “Read More” in the translation editor and write the translated setting into the target shortcode.
+
+## 1.20.4
+
+- Detect registered text controls from third-party Divi modules in the translation editor while preserving exclusions for technical configuration fields.
+
+## 1.20.3
+
+- Return the translated post title as a WPGraphQL fallback when a listing ACF `propertyId.content` value is empty.
+
+## 1.20.2
+
+- Preserve source-language publication ordering for default translated WPGraphQL listing connections without overriding an explicit client sort.
+
+## 1.20.1
+
+- Expose `openlinguaLanguage` in native CPT-to-taxonomy WPGraphQL connection `where` inputs, including custom taxonomies such as `listing.statusListings`.
+
+## 1.20.0
+
+- Filter WPGraphQL taxonomy connections by the requested OpenLingua language so third-party applications receive language-correct categories, tags, and custom taxonomy terms alongside CPT content.
+
+## 1.19.4
+
+- Keep normal frontend content queries tied to their requested URL language instead of a browser prefetch referrer; retain referrer resolution only for AJAX requests.
+
+## 1.19.3
+
+- Limit secondary-query language filtering to public content post types so Divi Theme Builder layouts and other internal builder records remain untouched.
+
+## 1.19.2
+
+- Filter third-party secondary `WP_Query` instances, including Divi Blog Extras modules and widgets, by the active OpenLingua language.
+- Resolve the active language for AJAX content queries from an explicit request value, the referring URL, or configured language domain.
+
+## 1.19.1
+
+- Keep shared WPGraphQL media attachments available while filtering their parent content by language.
+
+## 1.19.0
+
+- Filter WPGraphQL custom-post-type connections by the active OpenLingua language.
+- Add the optional `where.openlinguaLanguage` GraphQL argument plus query-string and request-header language overrides.
+
 ## 1.18.1
 
 - Replaced platform-dependent emoji flags in setup with a lightweight local SVG subset from the MIT-licensed flag-icons project.

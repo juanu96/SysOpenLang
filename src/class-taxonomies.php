@@ -4,6 +4,8 @@ namespace OpenLingua;
 defined( 'ABSPATH' ) || exit;
 
 final class Taxonomies {
+	const PUBLIC_SLUG_META = '_openlingua_public_slug';
+
 	public static function hooks() {
 		add_action( 'init', array( __CLASS__, 'register_fields' ), 99 );
 		add_action( 'admin_menu', array( __CLASS__, 'admin_menu' ), 16 );
@@ -11,8 +13,409 @@ final class Taxonomies {
 		add_action( 'created_term', array( __CLASS__, 'save' ), 10, 3 );
 		add_action( 'edited_term', array( __CLASS__, 'save' ), 10, 3 );
 		add_action( 'delete_term', array( __CLASS__, 'delete' ), 10, 1 );
+		add_action( 'pre_get_terms', array( __CLASS__, 'prepare_frontend_term_query' ), 1 );
+		add_filter( 'terms_clauses', array( __CLASS__, 'filter_frontend_term_clauses' ), 10, 3 );
+		add_filter( 'wp_unique_term_slug', array( __CLASS__, 'capture_public_slug' ), 10, 3 );
 		add_action( 'admin_post_openlingua_duplicate_term', array( __CLASS__, 'duplicate' ) );
 		add_action( 'admin_post_openlingua_save_term_translation', array( __CLASS__, 'save_translation' ) );
+	}
+
+	/**
+	 * Gives public root-term queries an explicit set of language-eligible IDs.
+	 *
+	 * WordPress resolves a root taxonomy connection through WP_Term_Query. Some
+	 * third-party query layers (including current WPGraphQL versions) suppress
+	 * the normal term filters while constructing that query. Supplying the IDs
+	 * here keeps their selects and archives language-scoped without changing the
+	 * physical relationships assigned to a translated post.
+	 */
+	public static function prepare_frontend_term_query( $query ) {
+		if ( ! $query instanceof \WP_Term_Query ) { return; }
+		$args = (array) $query->query_vars;
+		if ( ! empty( $args['object_ids'] ) || ! empty( $args['object_id'] ) || ! empty( $args['include'] ) ) { return; }
+
+		$requested = sanitize_key( $args['openlingua_language'] ?? '' );
+		if ( ! $requested && defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+			$requested = sanitize_key( wp_unslash( $_GET['lang'] ?? $_SERVER['HTTP_X_OPENLINGUA_LANGUAGE'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Public read-only language selector.
+		}
+		if ( is_admin() && ! Languages::is_valid( $requested ) ) { return; }
+		$language = Languages::is_valid( $requested ) ? $requested : Languages::current();
+		if ( ! Languages::is_valid( $language ) || Languages::default_code() === $language ) { return; }
+
+		$ids = self::language_term_ids( $language );
+		if ( $ids ) { $query->query_vars['include'] = $ids; }
+	}
+
+	/** Returns translated terms plus safe defaults for a secondary language. */
+	private static function language_term_ids( $language ) {
+		$language = sanitize_key( $language );
+		if ( ! Languages::is_valid( $language ) || Languages::default_code() === $language ) { return array(); }
+		global $wpdb;
+		$table = Database::table( 'translations' );
+		$term_ids = $wpdb->get_col( $wpdb->prepare(
+			"SELECT DISTINCT t.term_id
+			FROM %i t
+			INNER JOIN %i tt ON tt.term_id = t.term_id
+			LEFT JOIN %i ol_target ON ol_target.element_type = 'term' AND ol_target.element_id = t.term_id AND ol_target.language = %s
+			LEFT JOIN %i ol_any ON ol_any.element_type = 'term' AND ol_any.element_id = t.term_id
+			LEFT JOIN %i ol_default ON ol_default.element_type = 'term' AND ol_default.element_id = t.term_id AND ol_default.language = %s
+			LEFT JOIN %i ol_group_target ON ol_group_target.element_type = 'term' AND ol_group_target.group_uuid = ol_default.group_uuid AND ol_group_target.language = %s
+			LEFT JOIN %i tr ON tr.term_taxonomy_id = tt.term_taxonomy_id
+			LEFT JOIN %i ol_post ON ol_post.element_type = 'post' AND ol_post.element_id = tr.object_id AND ol_post.language = %s
+			WHERE ol_target.id IS NOT NULL OR ol_any.id IS NULL OR (ol_default.id IS NOT NULL AND ol_group_target.id IS NULL) OR ol_post.id IS NOT NULL",
+			$wpdb->terms,
+			$wpdb->term_taxonomy,
+			$table,
+			$language,
+			$table,
+			$table,
+			Languages::default_code(),
+			$table,
+			$language,
+			$wpdb->term_relationships,
+			$table,
+			$language
+		) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Language relationship lookup for WP_Term_Query compatibility.
+		return array_values( array_unique( array_filter( array_map( 'absint', (array) $term_ids ) ) ) );
+	}
+
+	/** Limits public get_terms() calls to the current language for all themes and plugins. */
+	public static function filter_frontend_term_clauses( $clauses, $taxonomies, $args ) {
+		unset( $taxonomies );
+		// A relationship query (REST's post fields, WPGraphQL connected terms and
+		// most builder modules) already has a language-scoped post. Filtering its
+		// terms again through OpenLingua's term registry can hide valid legacy or
+		// third-party terms whose relationship exists but whose term group has not
+		// been normalized yet. Return the physical assignments unchanged; root
+		// taxonomy queries still receive the language constraint below.
+		// Explicit IDs are a completed selection (for example WPGraphQL's
+		// deferred term loader). Re-filtering that list using request language
+		// would hide valid translated terms while the loader hydrates them.
+		if ( ! empty( $args['object_ids'] ) || ! empty( $args['object_id'] ) || ! empty( $args['include'] ) ) {
+			return $clauses;
+		}
+		$requested = sanitize_key( $args['openlingua_language'] ?? '' );
+		if ( ! $requested && defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+			$requested = sanitize_key( wp_unslash( $_GET['lang'] ?? $_SERVER['HTTP_X_OPENLINGUA_LANGUAGE'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Public read-only language selector.
+		}
+		$admin_list_language = self::admin_term_list_language( $args );
+		if ( $admin_list_language ) {
+			return self::filter_language_clauses( $clauses, $admin_list_language );
+		}
+		// WPGraphQL intentionally suppresses ordinary term filters. An explicit
+		// OpenLingua language request must still be honored; otherwise connected
+		// custom-taxonomy fields are silently empty in every secondary language.
+		$has_explicit_language = Languages::is_valid( $requested );
+		if ( ( ! empty( $args['suppress_filter'] ) && ! $has_explicit_language ) || ! empty( $args['openlingua_skip_language_filter'] ) || ( is_admin() && ! $has_explicit_language ) ) {
+			return $clauses;
+		}
+		$language = Languages::is_valid( $requested ) ? $requested : Languages::current();
+		return self::filter_language_clauses( $clauses, $language );
+	}
+
+	/** Returns the active language for the native taxonomy list table, or empty when it should stay unfiltered. */
+	private static function admin_term_list_language( $args ) {
+		if ( ! is_admin() || ! empty( $args['openlingua_skip_language_filter'] ) ) { return ''; }
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( $screen && 'edit-tags' !== ( $screen->base ?? '' ) ) { return ''; }
+		if ( ! $screen ) {
+			global $pagenow;
+			if ( 'edit-tags.php' !== ( $pagenow ?? '' ) ) { return ''; }
+		}
+		$language = class_exists( __NAMESPACE__ . '\Admin' ) ? Admin::content_language() : Languages::default_code();
+		if ( 'all' === $language || ! Languages::is_valid( $language ) ) { return ''; }
+		return $language;
+	}
+
+	/** Adds the language constraint shared by normal WordPress and WPGraphQL term queries. */
+	public static function filter_language_clauses( $clauses, $language ) {
+		$language = sanitize_key( $language );
+		if ( ! Languages::is_valid( $language ) ) { return $clauses; }
+		global $wpdb;
+		$table = Database::table( 'translations' );
+		if ( Languages::default_code() === $language ) {
+			$unassigned = $wpdb->prepare( "NOT EXISTS (SELECT 1 FROM %i ol_term_any WHERE ol_term_any.element_type = 'term' AND ol_term_any.element_id = t.term_id)", $table );
+			$translated = $wpdb->prepare( "EXISTS (SELECT 1 FROM %i ol_term_lang WHERE ol_term_lang.element_type = 'term' AND ol_term_lang.element_id = t.term_id AND ol_term_lang.language = %s)", $table, $language );
+			$clauses['where'] .= ' AND (' . $unassigned . ' OR ' . $translated . ')';
+		} else {
+			// A translated term wins. Until it exists, retain the default-language
+			// term as a fallback so every taxonomy is usable in a new language.
+			$translated = $wpdb->prepare( "EXISTS (SELECT 1 FROM %i ol_term_lang WHERE ol_term_lang.element_type = 'term' AND ol_term_lang.element_id = t.term_id AND ol_term_lang.language = %s)", $table, $language );
+			$unassigned = $wpdb->prepare( "NOT EXISTS (SELECT 1 FROM %i ol_term_any WHERE ol_term_any.element_type = 'term' AND ol_term_any.element_id = t.term_id)", $table );
+			$default_fallback = $wpdb->prepare( "EXISTS (SELECT 1 FROM %i ol_term_default WHERE ol_term_default.element_type = 'term' AND ol_term_default.element_id = t.term_id AND ol_term_default.language = %s) AND NOT EXISTS (SELECT 1 FROM %i ol_term_target WHERE ol_term_target.element_type = 'term' AND ol_term_target.group_uuid = ol_term_default.group_uuid AND ol_term_target.language = %s)", $table, Languages::default_code(), $table, $language );
+			// Legacy sites can have a valid target-language term physically assigned
+			// to translated posts while the old term relationship row is missing or
+			// stale. Keep that term visible to core archives, WPGraphQL and third-party
+			// get_terms() consumers. EXISTS avoids duplicate terms and only admits a
+			// term when its related post is explicitly in the requested language.
+			$assigned_to_language = $wpdb->prepare( "EXISTS (SELECT 1 FROM %i ol_term_relationship INNER JOIN %i ol_term_post_language ON ol_term_post_language.element_type = 'post' AND ol_term_post_language.element_id = ol_term_relationship.object_id AND ol_term_post_language.language = %s WHERE ol_term_relationship.term_taxonomy_id = tt.term_taxonomy_id)", $wpdb->term_relationships, $table, $language );
+			$clauses['where'] .= ' AND (' . $translated . ' OR ' . $unassigned . ' OR (' . $default_fallback . ') OR ' . $assigned_to_language . ')';
+		}
+		return $clauses;
+	}
+
+	/** Returns the preferred term for a language, falling back to the default-language term. */
+	public static function term_id_for_language( $term_id, $language ) {
+		$term_id = absint( $term_id );
+		$language = sanitize_key( $language );
+		if ( ! $term_id || ! Languages::is_valid( $language ) ) { return $term_id; }
+		$translated = Translations::translated_id( 'term', $term_id, $language );
+		if ( $translated ) { return $translated; }
+		$default = Translations::translated_id( 'term', $term_id, Languages::default_code() );
+		return $default ?: $term_id;
+	}
+
+	/** Returns the language-scoped public slug, independent of WordPress's physical term slug. */
+	public static function public_slug( $term ) {
+		$term = is_object( $term ) ? $term : get_term( $term );
+		if ( ! $term || is_wp_error( $term ) ) { return ''; }
+		$slug = sanitize_title( get_term_meta( $term->term_id, self::PUBLIC_SLUG_META, true ) );
+		return $slug ?: $term->slug;
+	}
+
+	/** Resolves a language-scoped public slug to its physical WordPress term. */
+	public static function term_for_public_slug( $taxonomy, $slug, $language ) {
+		$taxonomy = sanitize_key( $taxonomy );
+		$slug     = sanitize_title( $slug );
+		$language = sanitize_key( $language );
+		if ( ! $taxonomy || ! $slug || ! Languages::is_valid( $language ) ) { return null; }
+		$terms = get_terms( array( 'taxonomy' => $taxonomy, 'hide_empty' => false, 'meta_key' => self::PUBLIC_SLUG_META, 'meta_value' => $slug, 'openlingua_language' => $language ) );
+		if ( is_wp_error( $terms ) ) { return null; }
+		foreach ( $terms as $term ) {
+			$row = Translations::row( 'term', $term->term_id );
+			if ( $row && $language === $row->language ) { return $term; }
+		}
+		return null;
+	}
+
+	/** Stores the requested native-editor slug as the public language URL when WordPress has to suffix its physical slug. */
+	public static function capture_public_slug( $slug, $term, $original_slug ) {
+		if ( ! is_object( $term ) || empty( $term->term_id ) ) { return $slug; }
+		$row = Translations::row( 'term', $term->term_id );
+		$requested = sanitize_title( $original_slug );
+		if ( $row && $row->language !== Languages::default_code() && $requested ) { update_term_meta( $term->term_id, self::PUBLIC_SLUG_META, $requested ); }
+		return $slug;
+	}
+
+	/**
+	 * Makes a translated post use the equivalent term from every source taxonomy.
+	 *
+	 * Term relationships are WordPress data, separate from the post translation
+	 * group. Existing translations created before term synchronization was
+	 * available can therefore retain source-language term IDs. Replacing the
+	 * relationship set is intentional: it keeps the translated post and its
+	 * source on the same taxonomy groups, in the destination language.
+	 *
+	 * @return true|\WP_Error
+	 */
+	public static function synchronize_post_terms( $source_post_id, $target_post_id, $language ) {
+		$source_post_id = absint( $source_post_id );
+		$target_post_id = absint( $target_post_id );
+		$language       = sanitize_key( $language );
+		$source         = $source_post_id ? get_post( $source_post_id ) : null;
+		$target         = $target_post_id ? get_post( $target_post_id ) : null;
+		if ( ! $source || ! $target || $source->post_type !== $target->post_type || ! Languages::is_valid( $language ) ) {
+			return new \WP_Error( 'openlingua_invalid_post_term_sync', __( 'Invalid post taxonomy synchronization request.', 'openlingua' ) );
+		}
+
+		global $wpdb;
+		// A taxonomy can have valid native relationships even when a third-party
+		// plugin forgot to register that taxonomy against the post type. Core's
+		// get_object_taxonomies() then omits it, which used to make a successful
+		// repair silently clear the translated post's relationships. Discover the
+		// actual relationship taxonomies first and merge the registered list.
+		$relationship_taxonomies = $wpdb->get_col( $wpdb->prepare(
+			"SELECT DISTINCT tt.taxonomy FROM %i tr INNER JOIN %i tt ON tt.term_taxonomy_id = tr.term_taxonomy_id WHERE tr.object_id = %d",
+			$wpdb->term_relationships,
+			$wpdb->term_taxonomy,
+			$source_post_id
+		) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Explicit maintenance recovery of native post-term relationships.
+		$taxonomies = array_unique( array_merge( (array) get_object_taxonomies( $source->post_type ), array_filter( array_map( 'sanitize_key', (array) $relationship_taxonomies ) ) ) );
+
+		foreach ( $taxonomies as $taxonomy ) {
+			// Read the relationship table directly. It is the canonical record and
+			// bypasses filters used by GraphQL, builders and listing plugins.
+			$term_ids = $wpdb->get_col( $wpdb->prepare(
+				"SELECT tt.term_id FROM %i tr INNER JOIN %i tt ON tt.term_taxonomy_id = tr.term_taxonomy_id WHERE tr.object_id = %d AND tt.taxonomy = %s",
+				$wpdb->term_relationships,
+				$wpdb->term_taxonomy,
+				$source_post_id,
+				$taxonomy
+			) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Explicit maintenance recovery of native post-term relationships.
+			if ( null === $term_ids ) {
+				$term_ids = wp_get_object_terms( $source_post_id, $taxonomy, array( 'fields' => 'ids' ) );
+				if ( is_wp_error( $term_ids ) ) { return $term_ids; }
+			}
+			$translated_terms = array();
+			$valid_source_terms = 0;
+			foreach ( $term_ids as $term_id ) {
+				// Direct relationship-table reads can reveal legacy rows whose term
+				// was deleted by WordPress or a third-party plugin. That row is not
+				// a source taxonomy assignment and must not make a page uneditable.
+				$source_term = get_term( $term_id, $taxonomy );
+				if ( ! $source_term || is_wp_error( $source_term ) ) { continue; }
+				$valid_source_terms++;
+				$translated_id = self::ensure_translation( $term_id, $language );
+				if ( is_wp_error( $translated_id ) ) { return $translated_id; }
+				$translated_terms[] = absint( $translated_id );
+			}
+			// Do not let a taxonomy made solely of orphaned legacy rows erase a
+			// target relationship set. An intentional empty source taxonomy still
+			// reaches wp_set_object_terms() because its $term_ids is empty.
+			if ( $term_ids && ! $valid_source_terms ) { continue; }
+			$result = wp_set_object_terms( $target_post_id, $translated_terms, $taxonomy, false );
+			if ( is_wp_error( $result ) ) { return $result; }
+		}
+		return true;
+	}
+
+	/**
+	 * Repairs legacy post-to-term relationships in bounded batches.
+	 *
+	 * Only translation groups with a post in the configured default language are
+	 * considered. This makes the source deterministic and avoids changing groups
+	 * that were imported without a canonical original.
+	 *
+	 * @return array{synced:int,failed:int,skipped:int}
+	 */
+	public static function synchronize_existing_post_terms( $limit = 250 ) {
+		global $wpdb;
+		$limit   = max( 1, min( 1000, absint( $limit ) ) );
+		$table   = Database::table( 'translations' );
+		$default = Languages::default_code();
+		$rows    = $wpdb->get_results( $wpdb->prepare(
+			"SELECT source.element_id AS source_id, target.element_id AS target_id, target.language AS target_language FROM %i source INNER JOIN %i target ON target.element_type = 'post' AND target.group_uuid = source.group_uuid WHERE source.element_type = 'post' AND source.language = %s AND target.language <> %s ORDER BY target.id ASC LIMIT %d",
+			$table,
+			$table,
+			$default,
+			$default,
+			$limit
+		) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Maintenance repair across OpenLingua's relationship table.
+		$summary = array( 'synced' => 0, 'failed' => 0, 'skipped' => 0 );
+		foreach ( (array) $rows as $row ) {
+			$result = self::synchronize_post_terms( $row->source_id, $row->target_id, $row->target_language );
+			if ( true === $result ) { $summary['synced']++; }
+			elseif ( is_wp_error( $result ) ) { $summary['failed']++; }
+			else { $summary['skipped']++; }
+		}
+		return $summary;
+	}
+
+	/**
+	 * Adds an existing term to the same translation group as its original.
+	 *
+	 * This is deliberately explicit. Terms created independently in different
+	 * languages cannot be paired safely from their name or slug: both values
+	 * can be valid but refer to different concepts. The method keeps the target
+	 * term, its WordPress ID, metadata and public URL intact, and changes only
+	 * OpenLingua's relationship record.
+	 *
+	 * @return true|\WP_Error
+	 */
+	public static function link_existing_translation( $source_term_id, $target_term_id, $language ) {
+		$source_term_id = absint( $source_term_id );
+		$target_term_id = absint( $target_term_id );
+		$language       = sanitize_key( $language );
+		$source         = $source_term_id ? get_term( $source_term_id ) : null;
+		$target         = $target_term_id ? get_term( $target_term_id ) : null;
+		if ( ! $source || ! $target || is_wp_error( $source ) || is_wp_error( $target ) || $source_term_id === $target_term_id || $source->taxonomy !== $target->taxonomy || ! Languages::is_valid( $language ) ) {
+			return new \WP_Error( 'openlingua_invalid_term_link', __( 'Invalid taxonomy translation link.', 'openlingua' ) );
+		}
+
+		$source_row = Translations::row( 'term', $source_term_id );
+		if ( ! $source_row ) {
+			$group = Translations::assign( 'term', $source_term_id, Languages::default_code() );
+			if ( is_wp_error( $group ) ) { return $group; }
+			$source_row = Translations::row( 'term', $source_term_id );
+		}
+		if ( ! $source_row || $source_row->language === $language ) {
+			return new \WP_Error( 'openlingua_invalid_term_link_language', __( 'A translation must use a different language from its original term.', 'openlingua' ) );
+		}
+
+		$existing = Translations::translated_id( 'term', $source_term_id, $language );
+		if ( $existing && $existing !== $target_term_id ) {
+			return new \WP_Error( 'openlingua_term_translation_exists', __( 'This original term already has a translation in that language.', 'openlingua' ) );
+		}
+		$assigned = Translations::assign( 'term', $target_term_id, $language, $source_row->group_uuid, $source_row->language ?: Languages::default_code() );
+		return is_wp_error( $assigned ) ? $assigned : true;
+	}
+
+	/**
+	 * Creates or returns the term belonging to a translation group in $language.
+	 * Parents are resolved first, so a translated child can never point to a
+	 * parent from another language. New terms deliberately retain the source
+	 * name; a proper name is safer to preserve than to translate automatically.
+	 *
+	 * @return int|\WP_Error
+	 */
+	public static function ensure_translation( $term_id, $language, array $ancestry = array() ) {
+		$term_id = absint( $term_id );
+		$language = sanitize_key( $language );
+		if ( ! $term_id || ! Languages::is_valid( $language ) ) { return new \WP_Error( 'openlingua_invalid_term_translation', __( 'Invalid term translation request.', 'openlingua' ) ); }
+		if ( in_array( $term_id, $ancestry, true ) ) { return new \WP_Error( 'openlingua_term_hierarchy_cycle', __( 'A taxonomy hierarchy cannot contain a cycle.', 'openlingua' ) ); }
+		$term = get_term( $term_id );
+		if ( ! $term || is_wp_error( $term ) ) { return new \WP_Error( 'openlingua_term_not_found', __( 'Source term not found.', 'openlingua' ) ); }
+		$row = Translations::row( 'term', $term_id );
+		if ( ! $row ) {
+			$group = Translations::assign( 'term', $term_id, Languages::default_code() );
+			if ( is_wp_error( $group ) ) { return $group; }
+			$row = Translations::row( 'term', $term_id );
+		} else {
+			$group = $row->group_uuid;
+		}
+		if ( ! $row ) { return new \WP_Error( 'openlingua_term_link_failed', __( 'The source term could not be linked to a language.', 'openlingua' ) ); }
+		$target_id = Translations::translated_id( 'term', $term_id, $language );
+		$parent_id = 0;
+		if ( $term->parent ) {
+			// A deleted parent leaves an orphaned but otherwise valid term. Keep
+			// that term usable as a root rather than failing every related post
+			// save. A real, existing parent still recurses and is synchronized.
+			$parent = get_term( $term->parent, $term->taxonomy );
+			if ( $parent && ! is_wp_error( $parent ) ) {
+				$parent_id = self::ensure_translation( $term->parent, $language, array_merge( $ancestry, array( $term_id ) ) );
+				if ( is_wp_error( $parent_id ) ) { return $parent_id; }
+			}
+		}
+		if ( $target_id ) {
+			$target = get_term( $target_id, $term->taxonomy );
+			if ( $target && ! is_wp_error( $target ) && (int) $target->parent !== (int) $parent_id ) {
+				$updated = wp_update_term( $target_id, $term->taxonomy, array( 'parent' => $parent_id ) );
+				if ( is_wp_error( $updated ) ) { return $updated; }
+			}
+			return absint( $target_id );
+		}
+		$result = wp_insert_term( $term->name, $term->taxonomy, array(
+			'description' => $term->description,
+			'parent'      => $parent_id,
+			'slug'        => self::unique_translation_slug( $term->slug, $term->taxonomy, $language ),
+		) );
+		if ( is_wp_error( $result ) ) { return $result; }
+		$target_id = absint( $result['term_id'] );
+		foreach ( get_term_meta( $term_id ) as $key => $values ) {
+			foreach ( $values as $value ) { add_term_meta( $target_id, $key, maybe_unserialize( $value ) ); }
+		}
+		$assigned = Translations::assign( 'term', $target_id, $language, $row->group_uuid, $row->language ?: Languages::default_code() );
+		return is_wp_error( $assigned ) ? $assigned : $target_id;
+	}
+
+	/**
+	 * Returns a physical WordPress term slug that cannot collide in its taxonomy.
+	 * The language suffix is deterministic, while a numeric suffix handles terms
+	 * that were created independently before their translation relationship.
+	 */
+	public static function unique_translation_slug( $slug, $taxonomy, $language, $exclude_term_id = 0 ) {
+		$base = sanitize_title( $slug );
+		$taxonomy = sanitize_key( $taxonomy );
+		$language = sanitize_key( $language );
+		$exclude_term_id = absint( $exclude_term_id );
+		if ( ! $base || ! $taxonomy || ! $language ) { return $base; }
+		global $wpdb;
+		for ( $attempt = 0; $attempt < 1000; $attempt++ ) {
+			$candidate = 0 === $attempt ? $base : $base . '-' . $language . ( $attempt > 1 ? '-' . $attempt : '' );
+			$existing_id = absint( $wpdb->get_var( $wpdb->prepare( "SELECT tt.term_id FROM %i t INNER JOIN %i tt ON tt.term_id = t.term_id WHERE t.slug = %s AND tt.taxonomy = %s LIMIT 1", $wpdb->terms, $wpdb->term_taxonomy, $candidate, $taxonomy ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Core lookups may be language-filtered; physical slug uniqueness must not be.
+			if ( ! $existing_id || $existing_id === $exclude_term_id ) { return $candidate; }
+		}
+		return $base . '-' . $language . '-' . wp_generate_password( 8, false, false );
 	}
 
 	public static function admin_menu() {
@@ -106,13 +509,15 @@ final class Taxonomies {
 		$group = $row ? $row->group_uuid : Translations::assign( 'term', $source_id, Languages::default_code() );
 		$existing = Translations::translated_id( 'term', $source_id, $language );
 		if ( $existing ) { $target_id = absint( $existing ); }
-		$args = array( 'description' => $description );
-		if ( $slug ) { $args['slug'] = $slug; }
+		$public_slug = $slug ?: self::public_slug( $source );
+		$slug = self::unique_translation_slug( $public_slug, $taxonomy, $language, $target_id );
+		$args = array( 'description' => $description, 'slug' => $slug );
+		$parent = $source->parent ? self::ensure_translation( $source->parent, $language ) : 0;
+		if ( is_wp_error( $parent ) ) { wp_die( esc_html( $parent->get_error_message() ) ); }
+		$args['parent'] = $parent;
 		if ( $target_id ) {
 			$result = wp_update_term( $target_id, $taxonomy, array_merge( $args, array( 'name' => $name ) ) );
 		} else {
-			$parent = $source->parent ? Translations::translated_id( 'term', $source->parent, $language ) : 0;
-			$args['parent'] = $parent;
 			$result = wp_insert_term( $name, $taxonomy, $args );
 			if ( ! is_wp_error( $result ) ) {
 				$target_id = absint( $result['term_id'] );
@@ -121,10 +526,40 @@ final class Taxonomies {
 		}
 		if ( is_wp_error( $result ) ) { wp_die( esc_html( $result->get_error_message() ) ); }
 		Translations::assign( 'term', $target_id, $language, $group, $row ? $row->language : Languages::default_code() );
+		if ( $public_slug ) { update_term_meta( $target_id, self::PUBLIC_SLUG_META, $public_slug ); }
 		$seo_translation = isset( $_POST['seo_translation'] ) && is_array( $_POST['seo_translation'] ) ? array_map( 'sanitize_textarea_field', wp_unslash( $_POST['seo_translation'] ) ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Array values are sanitized immediately after nonce verification.
 		SEO::save_term_translation_fields( $source_id, $target_id, $seo_translation );
+		self::synchronize_term_translation_relationships( $source_id, $target_id, $language );
 		$return_to = isset( $_POST['return_to'] ) ? wp_validate_redirect( esc_url_raw( wp_unslash( $_POST['return_to'] ) ), '' ) : '';
 		wp_safe_redirect( add_query_arg( 'updated', '1', $return_to ?: admin_url( 'admin.php?page=openlingua-taxonomies' ) ) ); exit;
+	}
+
+	/** Synchronizes existing translated posts after a term translation is created or edited. */
+	private static function synchronize_term_translation_relationships( $source_term_id, $target_term_id, $language ) {
+		$source_term_id = absint( $source_term_id );
+		$target_term_id = absint( $target_term_id );
+		$language       = sanitize_key( $language );
+		$source         = $source_term_id ? get_term( $source_term_id ) : null;
+		$target         = $target_term_id ? get_term( $target_term_id ) : null;
+		if ( ! $source || ! $target || is_wp_error( $source ) || is_wp_error( $target ) || $source->taxonomy !== $target->taxonomy || ! Languages::is_valid( $language ) ) { return; }
+
+		global $wpdb;
+		$term_taxonomy_id = absint( $wpdb->get_var( $wpdb->prepare(
+			"SELECT term_taxonomy_id FROM %i WHERE term_id = %d AND taxonomy = %s LIMIT 1",
+			$wpdb->term_taxonomy,
+			$source_term_id,
+			$source->taxonomy
+		) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Native term relationship synchronization after editing a translation.
+		if ( ! $term_taxonomy_id ) { return; }
+		$source_post_ids = $wpdb->get_col( $wpdb->prepare(
+			"SELECT DISTINCT object_id FROM %i WHERE term_taxonomy_id = %d",
+			$wpdb->term_relationships,
+			$term_taxonomy_id
+		) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Native term relationship synchronization after editing a translation.
+		foreach ( array_filter( array_map( 'absint', (array) $source_post_ids ) ) as $source_post_id ) {
+			$target_post_id = Translations::translated_id( 'post', $source_post_id, $language );
+			if ( $target_post_id ) { self::synchronize_post_terms( $source_post_id, $target_post_id, $language ); }
+		}
 	}
 
 	public static function register_fields() {
@@ -151,9 +586,26 @@ final class Taxonomies {
 		$row     = Translations::row( 'term', $term->term_id );
 		$current = $row ? $row->language : Languages::default_code();
 		$group   = Translations::group( 'term', $term->term_id );
+		$original_id = $current === Languages::default_code() ? 0 : absint( $group[ Languages::default_code() ] ?? 0 );
 		wp_nonce_field( 'openlingua_save_term', 'openlingua_term_nonce' );
 		echo '<tr class="form-field"><th><label for="openlingua-term-language">' . esc_html__( 'Language', 'openlingua' ) . '</label></th><td>';
 		self::select( $current );
+		if ( $current !== Languages::default_code() ) {
+			$originals = self::available_original_terms( $taxonomy, $current, $term->term_id );
+			echo '<p><label for="openlingua-source-term"><strong>' . esc_html__( 'Original term', 'openlingua' ) . '</strong></label><br><select id="openlingua-source-term" name="openlingua_source_term"><option value="0">' . esc_html__( 'Not linked yet', 'openlingua' ) . '</option>';
+			// available_original_terms() correctly omits originals that already have
+			// this translation. Add the current relation back so the selector reflects
+			// an existing link instead of misleadingly showing "Not linked yet".
+			$linked_original = $original_id ? get_term( $original_id, $taxonomy ) : null;
+			if ( $linked_original && ! is_wp_error( $linked_original ) ) {
+				echo '<option value="' . absint( $linked_original->term_id ) . '" selected="selected">' . esc_html( $linked_original->name . ' (/' . $linked_original->slug . '/)' ) . '</option>';
+			}
+			foreach ( $originals as $original ) {
+				if ( $linked_original && absint( $linked_original->term_id ) === absint( $original->term_id ) ) { continue; }
+				echo '<option value="' . absint( $original->term_id ) . '" ' . selected( $original_id, $original->term_id, false ) . '>' . esc_html( $original->name . ' (/' . $original->slug . '/)' ) . '</option>';
+			}
+			echo '</select></p><p class="description">' . esc_html__( 'Use this only to link an existing term that already means the same thing in another language. OpenLingua never guesses this relationship from a name or slug.', 'openlingua' ) . '</p>';
+		}
 		echo '<p class="description">' . esc_html__( 'Translations of this term:', 'openlingua' ) . '</p><ul>';
 		foreach ( Languages::all() as $code => $language ) {
 			if ( $code === $current ) { continue; }
@@ -166,6 +618,19 @@ final class Taxonomies {
 			}
 		}
 		echo '</ul></td></tr>';
+	}
+
+	/** Returns source-language terms that do not already have a target in $language. */
+	private static function available_original_terms( $taxonomy, $language, $exclude_term_id ) {
+		$terms = get_terms( array( 'taxonomy' => $taxonomy, 'hide_empty' => false, 'orderby' => 'name', 'order' => 'ASC', 'suppress_filter' => true ) );
+		if ( is_wp_error( $terms ) ) { return array(); }
+		$default = Languages::default_code();
+		return array_values( array_filter( $terms, static function ( $candidate ) use ( $language, $exclude_term_id, $default ) {
+			if ( absint( $candidate->term_id ) === absint( $exclude_term_id ) ) { return false; }
+			$row = Translations::row( 'term', $candidate->term_id );
+			if ( $row && $row->language !== $default ) { return false; }
+			return ! Translations::translated_id( 'term', $candidate->term_id, $language );
+		} ) );
 	}
 
 	private static function select( $current ) {
@@ -221,6 +686,11 @@ final class Taxonomies {
 		$source   = isset( $_POST['openlingua_source_term'] ) ? absint( $_POST['openlingua_source_term'] ) : 0;
 		$row      = Translations::row( 'term', $term_id );
 		$source_row = $source ? Translations::row( 'term', $source ) : null;
+		if ( $source && $language !== Languages::default_code() ) {
+			$result = self::link_existing_translation( $source, $term_id, $language );
+			if ( is_wp_error( $result ) ) { return; }
+			return;
+		}
 		Translations::assign( 'term', $term_id, $language, $source_row ? $source_row->group_uuid : ( $row ? $row->group_uuid : '' ), $source_row ? $source_row->language : ( $row ? $row->source_language : '' ) );
 	}
 
@@ -239,14 +709,8 @@ final class Taxonomies {
 		if ( ! $row ) { $group = Translations::assign( 'term', $term_id, Languages::default_code() ); } else { $group = $row->group_uuid; }
 		$existing = Translations::translated_id( 'term', $term_id, $language );
 		if ( $existing ) { wp_safe_redirect( get_edit_term_link( $existing, $taxonomy ) ); exit; }
-		$parent = $source->parent ? Translations::translated_id( 'term', $source->parent, $language ) : 0;
-		$result = wp_insert_term( $source->name . ' (' . strtoupper( $language ) . ')', $taxonomy, array( 'description' => $source->description, 'parent' => $parent ) );
-		if ( is_wp_error( $result ) ) { wp_die( esc_html( $result->get_error_message() ) ); }
-		$new_id = absint( $result['term_id'] );
-		foreach ( get_term_meta( $term_id ) as $key => $values ) {
-			foreach ( $values as $value ) { add_term_meta( $new_id, $key, maybe_unserialize( $value ) ); }
-		}
-		Translations::assign( 'term', $new_id, $language, $group, $row ? $row->language : Languages::default_code() );
+		$new_id = self::ensure_translation( $term_id, $language );
+		if ( is_wp_error( $new_id ) ) { wp_die( esc_html( $new_id->get_error_message() ) ); }
 		wp_safe_redirect( get_edit_term_link( $new_id, $taxonomy ) ); exit;
 	}
 

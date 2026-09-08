@@ -91,6 +91,7 @@
 
 	function scan(root) {
 		var shortcode = root.getAttribute('data-openlingua-shortcode');
+		if (!shortcode) return Promise.resolve();
 		var pending = [];
 		collect(root).forEach(function (entry) {
 			var key = shortcode + '|' + entry.kind + '|' + entry.text;

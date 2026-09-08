@@ -10,6 +10,11 @@ namespace {
 }
 
 namespace OpenLingua {
+	$GLOBALS['shortcode_tags'] = array(
+		'sample_widget' => '__return_empty_string',
+		'revslider_divi' => '__return_empty_string',
+	);
+
 	final class Languages {
 		public static function current() { return 'es'; }
 		public static function default_code() { return 'en'; }

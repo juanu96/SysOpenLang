@@ -83,11 +83,14 @@ final class Shortcode_Content {
 		$tag      = sanitize_key( (string) $request->get_param( 'shortcode' ) );
 		$language = sanitize_key( (string) $request->get_param( 'language' ) );
 		$entries  = $request->get_param( 'entries' );
-		if ( ! self::is_supported( $tag ) || ! Languages::is_valid( $language ) || ! is_array( $entries ) ) {
+		if ( ! Languages::is_valid( $language ) || ! is_array( $entries ) ) {
 			return new \WP_Error( 'openlingua_invalid_shortcode_strings', __( 'Invalid shortcode strings request.', 'openlingua' ), array( 'status' => 400 ) );
 		}
 
 		$entries = array_slice( $entries, 0, 50 );
+		if ( ! self::is_supported( $tag ) ) {
+			return rest_ensure_response( array( 'translations' => self::fallback_entry_texts( $entries ) ) );
+		}
 		$domain  = 'shortcode-' . $tag;
 		$can_discover = current_user_can( 'manage_options' ) && Languages::default_code() === Languages::current();
 		$result = array();
@@ -108,11 +111,24 @@ final class Shortcode_Content {
 		return rest_ensure_response( array( 'translations' => $result ) );
 	}
 
+	private static function fallback_entry_texts( array $entries ) {
+		$result = array();
+		foreach ( $entries as $entry ) {
+			$text = isset( $entry['text'] ) ? sanitize_text_field( (string) $entry['text'] ) : '';
+			$result[] = trim( preg_replace( '/\s+/u', ' ', $text ) );
+		}
+		return $result;
+	}
+
 	public static function is_supported( $tag ) {
 		$tag = sanitize_key( $tag );
 		if ( '' === $tag ) { return false; }
-		// Divi modules are translated from their source fields by Divi_Content.
-		$supported = 0 !== strpos( $tag, 'et_pb_' );
+		// Process every registered third-party shortcode, not a hand-maintained
+		// list. Native Divi modules are handled by Divi_Content, which prevents
+		// their container output from duplicating fields in this generic path.
+		global $shortcode_tags;
+		$excluded = array( 'audio', 'caption', 'embed', 'gallery', 'playlist', 'video', 'wp_caption', 'openlingua_switcher' );
+		$supported = ! in_array( $tag, $excluded, true ) && 0 !== strpos( $tag, 'et_pb_' ) && isset( $shortcode_tags[ $tag ] );
 		return (bool) apply_filters( 'openlingua_translate_shortcode_output', $supported, $tag );
 	}
 
@@ -166,7 +182,10 @@ final class Shortcode_Content {
 		$key = sanitize_key( $kind . '-' . substr( hash( 'sha256', $source ), 0, 24 ) );
 		$cache_key = $domain . ':' . $key . ':' . Languages::current();
 		if ( ! array_key_exists( $cache_key, self::$translated ) ) {
-			self::$translated[ $cache_key ] = Strings::translate( $key, $source, $domain );
+			// Only the source-language render may create or refresh a discovered
+			// source string. A target-language page can legitimately contain a
+			// fallback source value, and must never overwrite that source text.
+			self::$translated[ $cache_key ] = Strings::translate( $key, $source, $domain, '', Languages::default_code() === Languages::current() );
 		}
 		return $leading . self::$translated[ $cache_key ] . $trailing;
 	}

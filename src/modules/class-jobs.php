@@ -131,7 +131,7 @@ final class Jobs implements Module {
 				if ( ! array_key_exists( $segment['id'], $result ) ) { continue; }
 				$translated_divi[ $segment['id'] ] = 'attribute' === $segment['kind'] ? sanitize_text_field( $result[ $segment['id'] ] ) : wp_kses_post( $result[ $segment['id'] ] );
 			}
-			$content = Divi_Content::apply( $source->post_content, $translated_divi );
+			$content = Divi_Content::apply_for_post( $source->ID, $source->post_content, $translated_divi );
 			$content = Divi_Content::restore_embedded_shortcodes( $source->post_content, $content );
 		} elseif ( $is_gutenberg ) {
 			$translated_blocks = array();

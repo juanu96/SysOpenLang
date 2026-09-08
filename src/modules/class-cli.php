@@ -19,10 +19,18 @@ class CLI_Command {
 
 	/** Exports a portable JSON snapshot. */
 	public function export( $args, $assoc_args ) {
-		$path = $assoc_args['file'] ?? 'openlingua-export.json';
-		$result = file_put_contents( $path, wp_json_encode( Portability::snapshot(), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
-		if ( false === $result ) { \WP_CLI::error( 'Could not write export file.' ); }
-		\WP_CLI::success( 'Exported OpenLingua data to ' . $path );
+		if ( isset( $assoc_args['file'] ) ) {
+			\WP_CLI::error( __( 'The --file option is no longer supported. Redirect the JSON output instead: wp openlingua export > openlingua-export.json', 'openlingua' ) );
+		}
+
+		$json = wp_json_encode( Portability::snapshot(), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE );
+		if ( ! is_string( $json ) ) {
+			\WP_CLI::error( __( 'Could not encode the OpenLingua export.', 'openlingua' ) );
+		}
+
+		// Keep stdout machine-readable. The shell, not the plugin, may redirect it
+		// to a path chosen by the administrator.
+		\WP_CLI::line( $json );
 	}
 
 	/** Imports and merges a portable JSON snapshot. */

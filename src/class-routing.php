@@ -10,6 +10,7 @@ final class Routing {
 	public static function hooks() {
 		self::detect_language();
 		add_filter( 'do_parse_request', array( __CLASS__, 'detect_prefix' ), 1, 3 );
+		add_filter( 'request', array( __CLASS__, 'resolve_public_term_slugs' ), 1 );
 		add_action( 'pre_get_posts', array( __CLASS__, 'resolve_language_object' ), 1 );
 		add_filter( 'post_link', array( __CLASS__, 'post_url' ), 10, 2 );
 		add_filter( 'post_type_link', array( __CLASS__, 'post_url' ), 10, 2 );
@@ -182,8 +183,33 @@ final class Routing {
 	}
 
 	public static function term_url( $url, $term, $taxonomy ) {
+		if ( ! is_object( $term ) || empty( $term->term_id ) ) { return $url; }
 		$row = Translations::row( 'term', $term->term_id );
-		return $row ? Languages::url( $url, $row->language ) : $url;
+		$language = is_admin() ? ( $row->language ?? Languages::default_code() ) : Languages::current();
+		$target_id = Taxonomies::term_id_for_language( $term->term_id, $language );
+		$target = $target_id === (int) $term->term_id ? $term : get_term( $target_id, $taxonomy );
+		if ( ! $target || is_wp_error( $target ) ) { $target = $term; }
+		$public_slug = Taxonomies::public_slug( $target );
+		if ( $target->term_id !== $term->term_id || $public_slug !== $term->slug ) { $url = self::replace_term_slug( $url, $term->slug, $public_slug ); }
+		return Languages::url( $url, $language );
+	}
+
+	/** Maps a public language term slug back to its unique physical WordPress slug before the main query runs. */
+	public static function resolve_public_term_slugs( $query_vars ) {
+		if ( is_admin() || ! is_array( $query_vars ) ) { return $query_vars; }
+		foreach ( get_taxonomies( array( 'public' => true ), 'objects' ) as $taxonomy ) {
+			$query_var = true === ( $taxonomy->query_var ?? false ) ? $taxonomy->name : ( $taxonomy->query_var ?? '' );
+			if ( ! $query_var || empty( $query_vars[ $query_var ] ) || false !== strpos( (string) $query_vars[ $query_var ], '/' ) ) { continue; }
+			$term = Taxonomies::term_for_public_slug( $taxonomy->name, $query_vars[ $query_var ], Languages::current() );
+			if ( $term ) { $query_vars[ $query_var ] = $term->slug; }
+		}
+		return $query_vars;
+	}
+
+	private static function replace_term_slug( $url, $from, $to ) {
+		$from = rawurlencode( (string) $from );
+		$to = rawurlencode( (string) $to );
+		return $from && $to ? str_replace( '/' . $from . '/', '/' . $to . '/', $url ) : $url;
 	}
 
 	public static function redirect_to_translation() {

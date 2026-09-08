@@ -65,7 +65,10 @@ final class Site_Settings implements Module {
 	}
 
 	public static function setup_notice() {
-		if ( ! get_option( 'openlingua_setup_required' ) || get_option( 'openlingua_setup_complete' ) || ! current_user_can( 'manage_options' ) || isset( $_GET['page'] ) && 'openlingua-setup' === $_GET['page'] ) { return; } // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen check.
+		if ( ! get_option( 'openlingua_setup_required' ) || get_option( 'openlingua_setup_complete' ) || ! current_user_can( 'manage_options' ) ) { return; }
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		$screen_id = is_object( $screen ) ? (string) $screen->id : '';
+		if ( '' === $screen_id || false === strpos( $screen_id, 'openlingua' ) || 'openlingua_page_openlingua-setup' === $screen_id ) { return; }
 		echo '<div class="notice notice-info"><p><strong>' . esc_html__( 'Finish setting up OpenLingua.', 'openlingua' ) . '</strong> ' . esc_html__( 'Confirm the primary language, URL format, and language switcher before translating content.', 'openlingua' ) . ' <a class="button button-primary" href="' . esc_url( admin_url( 'admin.php?page=openlingua-setup' ) ) . '">' . esc_html__( 'Start setup', 'openlingua' ) . '</a></p></div>';
 	}
 
@@ -137,7 +140,16 @@ final class Site_Settings implements Module {
 
 	private static function maintenance_actions( $s ) {
 		echo '<section class="openlingua-card"><h2>' . esc_html__( 'Maintenance actions', 'openlingua' ) . '</h2><p>' . esc_html__( 'These actions never delete translated posts, pages, terms, menus, or media files.', 'openlingua' ) . '</p>';
-		foreach ( array( 'cache' => __( 'Clear OpenLingua caches', 'openlingua' ), 'jobs' => __( 'Delete expired completed jobs', 'openlingua' ), 'memory' => __( 'Clear translation memory', 'openlingua' ) ) as $task => $label ) { echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="display:inline-block;margin:0 8px 8px 0"><input type="hidden" name="action" value="openlingua_maintenance"><input type="hidden" name="task" value="' . esc_attr( $task ) . '">'; wp_nonce_field( 'openlingua_maintenance_' . $task ); if ( 'memory' === $task ) { echo '<label><input type="checkbox" name="confirm" value="1" required> ' . esc_html__( 'Confirm', 'openlingua' ) . ' </label>'; } echo '<button class="button">' . esc_html( $label ) . '</button></form>'; }
+		$maintenance = isset( $_GET['maintenance'] ) ? sanitize_key( wp_unslash( $_GET['maintenance'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only status set by the verified maintenance action.
+		if ( 'term-sync' === $maintenance ) {
+			$summary = get_transient( 'openlingua_term_sync_' . get_current_user_id() );
+			if ( is_array( $summary ) ) {
+				delete_transient( 'openlingua_term_sync_' . get_current_user_id() );
+				/* translators: 1: number of synchronized translations, 2: number of translations that could not be synchronized. */
+				echo '<div class="notice notice-success inline"><p>' . esc_html( sprintf( __( 'Taxonomy repair completed: %1$d translations synchronized, %2$d could not be synchronized.', 'openlingua' ), absint( $summary['synced'] ?? 0 ), absint( $summary['failed'] ?? 0 ) ) ) . '</p></div>';
+			}
+		}
+		foreach ( array( 'cache' => __( 'Clear OpenLingua caches', 'openlingua' ), 'jobs' => __( 'Delete expired completed jobs', 'openlingua' ), 'memory' => __( 'Clear translation memory', 'openlingua' ), 'term-sync' => __( 'Repair translated post taxonomies', 'openlingua' ) ) as $task => $label ) { echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="display:inline-block;margin:0 8px 8px 0"><input type="hidden" name="action" value="openlingua_maintenance"><input type="hidden" name="task" value="' . esc_attr( $task ) . '">'; wp_nonce_field( 'openlingua_maintenance_' . $task ); if ( in_array( $task, array( 'memory', 'term-sync' ), true ) ) { echo '<label><input type="checkbox" name="confirm" value="1" required> ' . esc_html__( 'Confirm', 'openlingua' ) . ' </label>'; } echo '<button class="button">' . esc_html( $label ) . '</button></form>'; }
 		if ( 'remove' === $s['uninstall_mode'] ) { echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="openlingua_maintenance"><input type="hidden" name="task" value="confirm-uninstall">'; wp_nonce_field( 'openlingua_maintenance_confirm-uninstall' ); echo '<label><input type="checkbox" name="confirm" value="1" required> ' . esc_html__( 'I understand that uninstalling after this confirmation will remove OpenLingua data.', 'openlingua' ) . '</label> <button class="button">' . esc_html__( 'Authorize uninstall cleanup', 'openlingua' ) . '</button></form>'; }
 		echo '</section>';
 	}
@@ -169,6 +181,7 @@ final class Site_Settings implements Module {
 		if ( 'cache' === $task ) { foreach ( array( 'openlingua_rows', 'openlingua_groups', 'openlingua_routes', 'openlingua_strings', 'openlingua_memory' ) as $group ) { if ( function_exists( 'wp_cache_flush_group' ) ) { wp_cache_flush_group( $group ); } } }
 		elseif ( 'jobs' === $task ) { $days = max( 1, absint( self::get()['completed_job_retention'] ) ); $cutoff = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp' ) - $days * DAY_IN_SECONDS ); $wpdb->query( $wpdb->prepare( "DELETE FROM %i WHERE status = 'complete' AND updated_at < %s", \OpenLingua\Database::table( 'jobs' ), $cutoff ) ); }
 		elseif ( 'memory' === $task && ! empty( $_POST['confirm'] ) ) { $wpdb->query( $wpdb->prepare( 'DELETE FROM %i', \OpenLingua\Database::table( 'memory' ) ) ); }
+		elseif ( 'term-sync' === $task && ! empty( $_POST['confirm'] ) ) { $summary = \OpenLingua\Taxonomies::synchronize_existing_post_terms(); set_transient( 'openlingua_term_sync_' . get_current_user_id(), $summary, MINUTE_IN_SECONDS ); }
 		elseif ( 'confirm-uninstall' === $task && ! empty( $_POST['confirm'] ) && 'remove' === self::get()['uninstall_mode'] ) { update_option( 'openlingua_remove_data_confirmed', 1, false ); }
 		wp_safe_redirect( admin_url( 'admin.php?page=openlingua-settings&maintenance=' . $task ) ); exit;
 	}
