@@ -16,7 +16,7 @@ if ( '' === $version ) {
 	fwrite( STDERR, "Could not determine the plugin version.\n" );
 	exit( 1 );
 }
-$archive    = $root . DIRECTORY_SEPARATOR . 'sysopenlang.zip';
+$archive    = dirname( $root ) . DIRECTORY_SEPARATOR . 'sysopenlang.zip';
 $directories = array( 'assets', 'docs', 'languages', 'src' );
 $files       = array( 'CHANGELOG.md', 'LICENSE', 'SECURITY.md', 'sysopenlang.php', 'readme.txt', 'uninstall.php' );
 $entries     = array();
