@@ -75,10 +75,12 @@ final class SEO {
 	public static function save_translation_fields( $source_id, $target_id, array $submitted ) {
 		$groups = self::translation_fields( $source_id, $target_id );
 		$touched = array();
+		$clean_submitted = array();
 		foreach ( $groups as $provider => $group ) {
 			foreach ( $group['fields'] as $field ) {
 				if ( ! array_key_exists( $field['id'], $submitted ) ) { continue; }
 				$value = sanitize_textarea_field( $submitted[ $field['id'] ] );
+				$clean_submitted[ $field['id'] ] = $value;
 				if ( 'aioseo' === $provider ) { self::save_aioseo_field( $target_id, $field['key'], $value ); }
 				else { update_post_meta( $target_id, $field['key'], $value ); }
 				$touched[ $provider ] = true;
@@ -88,7 +90,7 @@ final class SEO {
 			$yoast = YoastSEO();
 			if ( isset( $yoast->helpers->indexable ) && method_exists( $yoast->helpers->indexable, 'delete_for_post' ) ) { $yoast->helpers->indexable->delete_for_post( $target_id ); }
 		}
-		do_action( 'openlingua_saved_seo_translation_fields', $source_id, $target_id, $submitted );
+		do_action( 'openlingua_saved_seo_translation_fields', $source_id, $target_id, $clean_submitted );
 	}
 
 	public static function term_translation_fields( $source_id, $target_id ) {
@@ -108,15 +110,17 @@ final class SEO {
 	}
 
 	public static function save_term_translation_fields( $source_id, $target_id, array $submitted ) {
+		$clean_submitted = array();
 		foreach ( self::term_translation_fields( $source_id, $target_id ) as $provider => $group ) {
 			foreach ( $group['fields'] as $field ) {
 				if ( ! array_key_exists( $field['id'], $submitted ) ) { continue; }
 				$value = sanitize_textarea_field( $submitted[ $field['id'] ] );
+				$clean_submitted[ $field['id'] ] = $value;
 				if ( 'aioseo' === $provider ) { self::save_aioseo_term_field( $target_id, $field['key'], $value ); }
 				else { update_term_meta( $target_id, $field['key'], $value ); }
 			}
 		}
-		do_action( 'openlingua_saved_seo_term_translation_fields', $source_id, $target_id, $submitted );
+		do_action( 'openlingua_saved_seo_term_translation_fields', $source_id, $target_id, $clean_submitted );
 	}
 
 	private static function save_aioseo_field( $post_id, $key, $value ) {

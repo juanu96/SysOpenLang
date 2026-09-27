@@ -68,9 +68,11 @@ final class Content {
 	}
 
 	public static function save_language( $post_id, $post ) {
-		if ( wp_is_post_revision( $post_id ) || ! isset( $_POST['openlingua_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['openlingua_nonce'] ) ), 'openlingua_save_post' ) || ! current_user_can( 'edit_post', $post_id ) ) {
-			return;
-		}
+		if ( wp_is_post_revision( $post_id ) || ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ) { return; }
+		if ( ! isset( $_POST['openlingua_nonce'] ) ) { return; }
+		$nonce = sanitize_text_field( wp_unslash( $_POST['openlingua_nonce'] ) );
+		if ( ! wp_verify_nonce( $nonce, 'openlingua_save_post' ) ) { return; }
+		if ( ! current_user_can( 'edit_post', $post_id ) ) { return; }
 		$language = isset( $_POST['openlingua_language'] ) ? sanitize_key( wp_unslash( $_POST['openlingua_language'] ) ) : Languages::default_code();
 		$row      = Translations::row( 'post', $post_id );
 		Translations::assign( 'post', $post_id, $language, $row ? $row->group_uuid : '', $row ? $row->source_language : '' );

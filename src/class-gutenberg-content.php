@@ -23,7 +23,7 @@ final class Gutenberg_Content {
 		if ( '' === $name || ! class_exists( 'WP_Block_Type_Registry' ) ) { return $content; }
 		$type = \WP_Block_Type_Registry::get_instance()->get_registered( (string) $block['blockName'] );
 		if ( ! $type || ! $type->is_dynamic() ) { return $content; }
-		return Shortcode_Content::translate_html( $content, 'block-' . $name );
+		return wp_kses_post( Shortcode_Content::translate_html( $content, 'block-' . $name ) );
 	}
 
 	public static function is_gutenberg( $content ) {

@@ -51,6 +51,7 @@ final class Admin {
 			echo '<option value="' . esc_attr( $code ) . '" ' . selected( $current, $code, false ) . '>' . esc_html( $language['name'] ) . '</option>';
 		}
 		echo '</select>';
+		echo wp_nonce_field( 'openlingua_admin_language', 'openlingua_admin_language_nonce', true, false );
 	}
 
 	public static function content_language() {
@@ -61,8 +62,10 @@ final class Admin {
 	}
 
 	public static function remember_content_language() {
-		if ( ! get_current_user_id() || ! isset( $_GET['lang'] ) ) { return; } // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$language = sanitize_key( wp_unslash( $_GET['lang'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! get_current_user_id() || ! isset( $_GET['lang'], $_GET['openlingua_admin_language_nonce'] ) ) { return; }
+		$nonce = sanitize_text_field( wp_unslash( $_GET['openlingua_admin_language_nonce'] ) );
+		if ( ! wp_verify_nonce( $nonce, 'openlingua_admin_language' ) ) { return; }
+		$language = sanitize_key( wp_unslash( $_GET['lang'] ) );
 		if ( 'all' === $language || Languages::is_valid( $language ) ) {
 			update_user_meta( get_current_user_id(), '_openlingua_admin_content_language', $language );
 		}
@@ -79,11 +82,12 @@ final class Admin {
 			$title = ( $language['flag'] ?? '🌐' ) . ' ' . $language['name'];
 		}
 		$base_url = remove_query_arg( array( 'lang', 'openlingua_language_filter', 'paged' ) );
+		$language_nonce = wp_create_nonce( 'openlingua_admin_language' );
 		$admin_bar->add_node( array( 'id' => 'openlingua-language', 'title' => esc_html( $title ), 'href' => false, 'meta' => array( 'title' => esc_attr__( 'Current content language', 'sysopenlang' ) ) ) );
 		foreach ( $languages as $code => $language ) {
-			$admin_bar->add_node( array( 'parent' => 'openlingua-language', 'id' => 'openlingua-language-' . $code, 'title' => esc_html( ( $language['flag'] ?? '🌐' ) . ' ' . $language['name'] ), 'href' => add_query_arg( 'lang', $code, $base_url ) ) );
+			$admin_bar->add_node( array( 'parent' => 'openlingua-language', 'id' => 'openlingua-language-' . $code, 'title' => esc_html( ( $language['flag'] ?? '🌐' ) . ' ' . $language['name'] ), 'href' => add_query_arg( array( 'lang' => $code, 'openlingua_admin_language_nonce' => $language_nonce ), $base_url ) ) );
 		}
-		$admin_bar->add_node( array( 'parent' => 'openlingua-language', 'id' => 'openlingua-language-all', 'title' => '🌐 ' . esc_html__( 'All languages', 'sysopenlang' ), 'href' => add_query_arg( 'lang', 'all', $base_url ) ) );
+		$admin_bar->add_node( array( 'parent' => 'openlingua-language', 'id' => 'openlingua-language-all', 'title' => '🌐 ' . esc_html__( 'All languages', 'sysopenlang' ), 'href' => add_query_arg( array( 'lang' => 'all', 'openlingua_admin_language_nonce' => $language_nonce ), $base_url ) ) );
 	}
 
 	private static function requested_language() {

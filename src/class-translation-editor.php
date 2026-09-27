@@ -32,12 +32,14 @@ final class Translation_Editor {
 	}
 
 	public static function url( $source_id, $target_id, $return_to = '' ) {
-		$args = array( 'page' => 'openlingua-translation-editor', 'source_id' => absint( $source_id ), 'target_id' => absint( $target_id ) );
+		$target_id = absint( $target_id );
+		$args = array( 'page' => 'openlingua-translation-editor', 'source_id' => absint( $source_id ), 'target_id' => $target_id );
 		if ( $return_to ) { $args['return_to'] = $return_to; }
-		return add_query_arg(
+		$url = add_query_arg(
 			$args,
 			admin_url( 'admin.php' )
 		);
+		return wp_nonce_url( $url, 'openlingua_edit_translation_' . $target_id );
 	}
 
 	public static function assets( $hook ) {
@@ -274,7 +276,7 @@ final class Translation_Editor {
 		$acf_translation = self::posted_array( 'acf_translation' );
 		ACF_Content::save( $source_id, $target_id, $acf_translation, current_user_can( 'unfiltered_html' ) );
 		update_post_meta( $target_id, ACF_Content::SOURCE_SNAPSHOT_META, ACF_Content::source_snapshot( $source_id ) );
-		$seo_translation = self::posted_array( 'seo_translation' );
+		$seo_translation = self::posted_array( 'seo_translation', 'sanitize_textarea_field' );
 		SEO::save_translation_fields( $source_id, $target_id, $seo_translation );
 		\SysOpenLang\Modules\Commerce::save_translation_fields( $source_id, $target_id, self::posted_array( 'commerce_translation' ) );
 		$term_sync = Taxonomies::synchronize_post_terms( $source_id, $target_id, $target_row ? $target_row->language : '' );
@@ -287,14 +289,16 @@ final class Translation_Editor {
 	}
 
 	private static function posts_from_request() {
-		$source_id = isset( $_GET['source_id'] ) ? absint( $_GET['source_id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$target_id = isset( $_GET['target_id'] ) ? absint( $_GET['target_id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$target_id = isset( $_GET['target_id'] ) ? absint( $_GET['target_id'] ) : 0;
+		check_admin_referer( 'openlingua_edit_translation_' . $target_id );
+		$source_id = isset( $_GET['source_id'] ) ? absint( $_GET['source_id'] ) : 0;
 		return array( get_post( $source_id ), get_post( $target_id ) );
 	}
 
-	private static function posted_array( $key ) {
+	private static function posted_array( $key, $sanitize_callback = null ) {
 		if ( ! isset( $_POST[ $key ] ) || ! is_array( $_POST[ $key ] ) ) { return array(); } // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.NonceVerification.Missing -- The save handler verifies its nonce before calling this method; values are sanitized by segment type.
-		return (array) wp_unslash( $_POST[ $key ] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.NonceVerification.Missing -- The save handler already verified its nonce; callers apply field-specific sanitization.
+		$value = (array) wp_unslash( $_POST[ $key ] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.NonceVerification.Missing -- The save handler already verified its nonce; callers apply field-specific sanitization.
+		return is_callable( $sanitize_callback ) ? map_deep( $value, $sanitize_callback ) : $value;
 	}
 
 	private static function is_translation_pair( $source_id, $target_id ) {

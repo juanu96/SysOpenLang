@@ -11,6 +11,7 @@ namespace {
 	function get_permalink( $id ) { return 'https://example.test/es/page-' . $id . '/'; }
 	function admin_url( $path = '' ) { return 'https://example.test/wp-admin/' . ltrim( $path, '/' ); }
 	function add_query_arg( $args, $url ) { return $url . '?' . http_build_query( $args ); }
+	function wp_nonce_url( $url, $action ) { return add_query_arg( array( '_wpnonce' => 'nonce-' . $action ), $url ); }
 	function esc_html__( $text ) { return $text; }
 	function esc_attr__( $text ) { return $text; }
 	function add_action() {}

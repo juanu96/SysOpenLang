@@ -86,15 +86,18 @@ final class Shortcode_Admin {
 	}
 
 	public static function editor_url( $shortcode, $language, $return_to = '' ) {
-		$args = array( 'page' => self::EDITOR_PAGE, 'shortcode' => sanitize_key( $shortcode ), 'language' => sanitize_key( $language ) );
+		$shortcode = sanitize_key( $shortcode );
+		$language = sanitize_key( $language );
+		$args = array( 'page' => self::EDITOR_PAGE, 'shortcode' => $shortcode, 'language' => $language );
 		if ( $return_to ) { $args['return_to'] = $return_to; }
-		return add_query_arg( $args, admin_url( 'admin.php' ) );
+		return wp_nonce_url( add_query_arg( $args, admin_url( 'admin.php' ) ), 'openlingua_shortcode_editor_' . $shortcode . '_' . $language );
 	}
 
 	public static function editor() {
 		if ( ! current_user_can( 'manage_options' ) ) { return; }
-		$shortcode = isset( $_GET['shortcode'] ) ? sanitize_key( wp_unslash( $_GET['shortcode'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$language = isset( $_GET['language'] ) ? sanitize_key( wp_unslash( $_GET['language'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$shortcode = isset( $_GET['shortcode'] ) ? sanitize_key( wp_unslash( $_GET['shortcode'] ) ) : '';
+		$language = isset( $_GET['language'] ) ? sanitize_key( wp_unslash( $_GET['language'] ) ) : '';
+		check_admin_referer( 'openlingua_shortcode_editor_' . $shortcode . '_' . $language );
 		$rows = self::domain_rows( $shortcode );
 		if ( ! $shortcode || ! Languages::is_valid( $language ) || ! $rows ) { wp_die( esc_html__( 'The shortcode translation could not be loaded.', 'sysopenlang' ) ); }
 		$source_code = sanitize_key( $rows[0]->source_language ?: Languages::default_code() );
