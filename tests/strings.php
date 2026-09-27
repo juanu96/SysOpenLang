@@ -1,7 +1,7 @@
 <?php
-namespace OpenLingua\Contracts { interface Module { public static function hooks(); } }
+namespace SysOpenLang\Contracts { interface Module { public static function hooks(); } }
 
-namespace OpenLingua {
+namespace SysOpenLang {
 	final class Languages {
 		public static function default_code() { return 'en'; }
 		public static function current() { return 'es'; }
@@ -30,22 +30,22 @@ namespace {
 	}
 
 	$key = substr( hash( 'sha256', "theme\0Recent Posts" ), 0, 32 );
-	\OpenLingua\Strings::$translations[ 'theme:' . $key . ':es' ] = 'Publicaciones recientes';
-	$result = \OpenLingua\Modules\String_Discovery::gettext( 'Recent Posts', 'Recent Posts', 'theme' );
+	\SysOpenLang\Strings::$translations[ 'theme:' . $key . ':es' ] = 'Publicaciones recientes';
+	$result = \SysOpenLang\Modules\String_Discovery::gettext( 'Recent Posts', 'Recent Posts', 'theme' );
 	strings_assert( 'Publicaciones recientes' === $result, 'applies a stored gettext translation' );
-	strings_assert( array() === \OpenLingua\Strings::$registered, 'does not discover new strings while discovery is disabled' );
+	strings_assert( array() === \SysOpenLang\Strings::$registered, 'does not discover new strings while discovery is disabled' );
 
 	$GLOBALS['openlingua_discovery'] = true;
-	\OpenLingua\Modules\String_Discovery::gettext( 'Recent Comments', 'Recent Comments', 'theme' );
-	strings_assert( 1 === count( \OpenLingua\Strings::$registered ), 'registers a missing string when discovery is enabled' );
+	\SysOpenLang\Modules\String_Discovery::gettext( 'Recent Comments', 'Recent Comments', 'theme' );
+	strings_assert( 1 === count( \SysOpenLang\Strings::$registered ), 'registers a missing string when discovery is enabled' );
 
 	$context_key = substr( hash( 'sha256', "theme\0menu title\0Home" ), 0, 32 );
-	\OpenLingua\Strings::$translations[ 'theme:' . $context_key . ':es' ] = 'Inicio';
-	strings_assert( 'Inicio' === \OpenLingua\Modules\String_Discovery::gettext_with_context( 'Home', 'Home', 'menu title', 'theme' ), 'keeps contextual strings separate' );
+	\SysOpenLang\Strings::$translations[ 'theme:' . $context_key . ':es' ] = 'Inicio';
+	strings_assert( 'Inicio' === \SysOpenLang\Modules\String_Discovery::gettext_with_context( 'Home', 'Home', 'menu title', 'theme' ), 'keeps contextual strings separate' );
 
 	$plural_key = substr( hash( 'sha256', "theme\0plural\0Comments" ), 0, 32 );
-	\OpenLingua\Strings::$translations[ 'theme:' . $plural_key . ':es' ] = 'Comentarios';
-	strings_assert( 'Comentarios' === \OpenLingua\Modules\String_Discovery::ngettext( 'Comments', 'Comment', 'Comments', 2, 'theme' ), 'applies the plural translation' );
+	\SysOpenLang\Strings::$translations[ 'theme:' . $plural_key . ':es' ] = 'Comentarios';
+	strings_assert( 'Comentarios' === \SysOpenLang\Modules\String_Discovery::ngettext( 'Comments', 'Comment', 'Comments', 2, 'theme' ), 'applies the plural translation' );
 
-	echo "All OpenLingua interface string tests passed.\n";
+	echo "All SysOpenLang interface string tests passed.\n";
 }

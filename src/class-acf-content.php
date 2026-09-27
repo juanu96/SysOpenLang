@@ -1,5 +1,5 @@
 <?php
-namespace OpenLingua;
+namespace SysOpenLang;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -99,7 +99,7 @@ final class ACF_Content {
 	private static function walk( array $field, $value, array $path, array $parents, $root_key, $post_type, array &$segments ) {
 		$name = $field['name'] ?? '';
 		$type = $field['type'] ?? '';
-		$policy = \OpenLingua\Modules\Metadata::policy( $name, $post_type );
+		$policy = \SysOpenLang\Modules\Metadata::policy( $name, $post_type );
 		if ( in_array( $policy, array( 'copy', 'ignore' ), true ) ) { return; }
 		$label = $field['label'] ?? $name;
 		$labels = array_merge( $parents, array( $label ) );
@@ -111,7 +111,7 @@ final class ACF_Content {
 		}
 
 		if ( 'link' === $type && is_array( $value ) && ! empty( $value['title'] ) ) {
-			self::add_segment( $segments, $root_key, array_merge( $path, array( 'title' ) ), array_merge( $labels, array( __( 'Link text', 'openlingua' ) ) ), (string) $value['title'], 'plain' );
+			self::add_segment( $segments, $root_key, array_merge( $path, array( 'title' ) ), array_merge( $labels, array( __( 'Link text', 'sysopenlang' ) ) ), (string) $value['title'], 'plain' );
 			return;
 		}
 
@@ -134,7 +134,7 @@ final class ACF_Content {
 					if ( ! $sub_name || ! $sub_key ) { continue; }
 					$sub_value = is_array( $row ) ? ( $row[ $sub_name ] ?? ( $row[ $sub_field['key'] ] ?? null ) ) : null;
 					/* translators: %d: repeater row number. */
-					self::walk( $sub_field, $sub_value, array_merge( $path, array( $row_index, $sub_key ) ), array_merge( $labels, array( sprintf( __( 'Row %d', 'openlingua' ), $row_index + 1 ) ) ), $root_key, $post_type, $segments );
+					self::walk( $sub_field, $sub_value, array_merge( $path, array( $row_index, $sub_key ) ), array_merge( $labels, array( sprintf( __( 'Row %d', 'sysopenlang' ), $row_index + 1 ) ) ), $root_key, $post_type, $segments );
 				}
 			}
 			return;

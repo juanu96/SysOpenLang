@@ -1,4 +1,4 @@
-=== OpenLingua ===
+=== SysOpenLang ===
 Contributors: juanu96
 Tags: multilingual, translation, languages, custom post types, localization
 Requires at least: 6.4
@@ -12,7 +12,7 @@ A free, community-first multilingual foundation for WordPress.
 
 == Description ==
 
-OpenLingua is free software for managing translated WordPress content from one installation. Core translation features work without an external account.
+SysOpenLang is free software for managing translated WordPress content from one installation. Core translation features work without an external account.
 
 Stable supported features:
 
@@ -36,48 +36,48 @@ Stable supported features:
 * A first-run assistant plus centralized controls for translation creation, review, automatic jobs, permissions, notices, SEO, discovery, maintenance, and uninstall behavior.
 * Data preservation on uninstall unless permanent cleanup is explicitly authorized.
 
-OpenLingua does not send content to a translation service unless an administrator configures a provider and explicitly starts an automatic translation job. See External services below before enabling a provider.
+SysOpenLang does not send content to a translation service unless an administrator configures a provider and explicitly starts an automatic translation job. See External services below before enabling a provider.
 
 == Installation ==
 
-1. Upload and activate OpenLingua.
-2. Open OpenLingua in the WordPress administration area.
+1. Upload and activate SysOpenLang.
+2. Open SysOpenLang in the WordPress administration area.
 3. Configure languages and a default language.
 4. Edit content or taxonomy terms to create linked translations.
 5. Assign navigation menus and custom-field policies where needed.
 
 == Developer API ==
 
-`OpenLingua\register_string( 'footer_title', 'Contact us', 'theme' );`
+`SysOpenLang\register_string( 'footer_title', 'Contact us', 'theme' );`
 
-`OpenLingua\translate_string( 'footer_title', 'Contact us', 'theme' );`
+`SysOpenLang\translate_string( 'footer_title', 'Contact us', 'theme' );`
 
-`OpenLingua\translate_plural( 'item', 'items', $count, 'Item', 'Items', 'theme' );`
+`SysOpenLang\translate_plural( 'item', 'items', $count, 'Item', 'Items', 'theme' );`
 
-`OpenLingua\translated_post_id( get_the_ID(), 'es' );`
+`SysOpenLang\translated_post_id( get_the_ID(), 'es' );`
 
-`OpenLingua\translated_term_id( $term_id, 'es' );`
+`SysOpenLang\translated_term_id( $term_id, 'es' );`
 
-`OpenLingua\set_menu_translation( 'primary', 'es', $menu_id );`
+`SysOpenLang\set_menu_translation( 'primary', 'es', $menu_id );`
 
-Provider integrations implement `OpenLingua\Contracts\Translation_Provider` and register through `OpenLingua\register_provider()` or the `openlingua_translation_providers` filter.
+Provider integrations implement `SysOpenLang\Contracts\Translation_Provider` and register through `SysOpenLang\register_provider()` or the `sysopenlang_translation_providers` filter.
 
-Builder integrations implement `OpenLingua\Contracts\Content_Extractor` and register on `openlingua_register_content_extractors` with `OpenLingua\Content_Extractors::register()`.
+Builder integrations implement `SysOpenLang\Contracts\Content_Extractor` and register on `sysopenlang_register_content_extractors` with `SysOpenLang\Content_Extractors::register()`.
 
 REST endpoints:
 
-* `GET /wp-json/openlingua/v1/languages`
-* `GET /wp-json/openlingua/v1/translations/post/123`
-* `GET /wp-json/openlingua/v1/translations/term/45`
-* `POST /wp-json/openlingua/v1/jobs` (authenticated editors)
-* `GET /wp-json/openlingua/v1/diagnostics` (administrators)
+* `GET /wp-json/sysopenlang/v1/languages`
+* `GET /wp-json/sysopenlang/v1/translations/post/123`
+* `GET /wp-json/sysopenlang/v1/translations/term/45`
+* `POST /wp-json/sysopenlang/v1/jobs` (authenticated editors)
+* `GET /wp-json/sysopenlang/v1/diagnostics` (administrators)
 
 WP-CLI:
 
-* `wp openlingua languages`
-* `wp openlingua export > openlingua.json`
-* `wp openlingua import --file=openlingua.json`
-* `wp openlingua diagnostics`
+* `wp sysopenlang languages`
+* `wp sysopenlang export > sysopenlang.json`
+* `wp sysopenlang import --file=sysopenlang.json`
+* `wp sysopenlang diagnostics`
 
 == Scope and compatibility ==
 
@@ -87,7 +87,7 @@ WooCommerce support covers translated product content, stable linked variations,
 
 == External services ==
 
-OpenLingua can optionally send content selected for automatic translation to one configured provider. These integrations are disabled until an administrator adds their own API credential, selects that provider, and starts a translation job. OpenLingua itself does not create provider accounts, collect provider payments, or receive the submitted content.
+SysOpenLang can optionally send content selected for automatic translation to one configured provider. These integrations are disabled until an administrator adds their own API credential, selects that provider, and starts a translation job. SysOpenLang itself does not create provider accounts, collect provider payments, or receive the submitted content.
 
 Depending on the selected provider, the plugin sends the source and target language identifiers, the human-readable content segments being translated, and an instruction to preserve structural markup. The configured API credential is sent only to that provider for authentication. Provider model-list requests send the credential but no site content. Review the applicable provider terms and privacy policy before use:
 
@@ -100,9 +100,9 @@ API credentials are stored encrypted in the WordPress options table when OpenSSL
 
 == Privacy ==
 
-Without an enabled automatic-translation provider, OpenLingua keeps language relationships, translated strings, settings, workflow status, and jobs in the local WordPress database. It does not include analytics or usage tracking. Administrators can copy the suggested disclosure added by OpenLingua to WordPress's Privacy Policy Guide and adapt it to the site's actual configuration.
+Without an enabled automatic-translation provider, SysOpenLang keeps language relationships, translated strings, settings, workflow status, and jobs in the local WordPress database. It does not include analytics or usage tracking. Administrators can copy the suggested disclosure added by SysOpenLang to WordPress's Privacy Policy Guide and adapt it to the site's actual configuration.
 
-Removing the plugin preserves data by default to prevent accidental loss. Permanent cleanup can be authorized in OpenLingua settings with an additional confirmation, or by defining `OPENLINGUA_REMOVE_DATA` as `true`. Make a backup first.
+Removing the plugin preserves data by default to prevent accidental loss. Permanent cleanup can be authorized in SysOpenLang settings with an additional confirmation, or by defining `SYSOPENLANG_REMOVE_DATA` as `true`. Make a backup first.
 
 == Frequently Asked Questions ==
 
@@ -110,9 +110,9 @@ Removing the plugin preserves data by default to prevent accidental loss. Perman
 
 No. Manual translation works without an external service. Automatic translation requires an account and credential from the provider selected by the site administrator, and that provider may charge for usage.
 
-= Does OpenLingua guarantee search indexing or legal compliance? =
+= Does SysOpenLang guarantee search indexing or legal compliance? =
 
-No. OpenLingua outputs language-aware URLs and SEO metadata, but indexing decisions belong to search engines. Site owners must review translated content, privacy disclosures, provider terms, and laws applicable to their site.
+No. SysOpenLang outputs language-aware URLs and SEO metadata, but indexing decisions belong to search engines. Site owners must review translated content, privacy disclosures, provider terms, and laws applicable to their site.
 
 = What happens to my translations when I uninstall the plugin? =
 
@@ -142,7 +142,7 @@ They are preserved by default. See the Privacy section for the explicit cleanup 
 * Add default-term fallbacks and localized public taxonomy slugs, so translations can keep the same public slug without WordPress internal collisions.
 
 = 1.20.7 =
-* Filter normal frontend taxonomy queries by the current OpenLingua language, including categories generated dynamically by third-party modules.
+* Filter normal frontend taxonomy queries by the current SysOpenLang language, including categories generated dynamically by third-party modules.
 
 = 1.20.6 =
 * Preserve deferred WPGraphQL resolver values instead of converting them to text during the listing title fallback.
@@ -160,11 +160,11 @@ They are preserved by default. See the Privacy section for the explicit cleanup 
 * Preserve source-language publication ordering for default WPGraphQL translated listings.
 
 = 1.20.1 =
-* Expose the OpenLingua language filter in native CPT-to-taxonomy GraphQL connection `where` inputs.
+* Expose the SysOpenLang language filter in native CPT-to-taxonomy GraphQL connection `where` inputs.
 
 = 1.20.0 =
 
-* Filter WPGraphQL category, tag, and custom-taxonomy connections to the requested OpenLingua language, including terms connected to a custom post type.
+* Filter WPGraphQL category, tag, and custom-taxonomy connections to the requested SysOpenLang language, including terms connected to a custom post type.
 
 = 1.19.4 =
 
@@ -176,7 +176,7 @@ They are preserved by default. See the Privacy section for the explicit cleanup 
 
 = 1.19.2 =
 
-* Filter secondary public WordPress queries, including third-party Divi modules and widgets, to the active OpenLingua language.
+* Filter secondary public WordPress queries, including third-party Divi modules and widgets, to the active SysOpenLang language.
 * Preserve language filtering for AJAX content queries using an explicit language, the referring language URL, or a configured language domain.
 
 = 1.19.1 =
@@ -185,8 +185,8 @@ They are preserved by default. See the Privacy section for the explicit cleanup 
 
 = 1.19.0 =
 
-* Filter WPGraphQL post and custom-post-type connections by the active OpenLingua language.
-* Add an optional `openlinguaLanguage` connection argument and request-level language overrides.
+* Filter WPGraphQL post and custom-post-type connections by the active SysOpenLang language.
+* Add an optional `sysopenlangLanguage` connection argument and request-level language overrides.
 
 = 1.18.1 =
 * Added lightweight local SVG flags to make setup consistent across browsers and operating systems.
@@ -201,7 +201,7 @@ They are preserved by default. See the Privacy section for the explicit cleanup 
 = 1.17.0 =
 
 * Added a guided three-step first-install wizard for languages, URL format, and selector appearance.
-* Redirected the first OpenLingua visit to setup only on genuinely new installations.
+* Redirected the first SysOpenLang visit to setup only on genuinely new installations.
 * Kept upgraded and already configured sites outside the forced onboarding flow.
 
 = 1.16.0 =
@@ -240,7 +240,7 @@ They are preserved by default. See the Privacy section for the explicit cleanup 
 
 = 1.12.0 =
 * Stop creating attachment translations and reuse WordPress media across translated content by default.
-* Add unified and language-separated Media Library modes under OpenLingua settings.
+* Add unified and language-separated Media Library modes under SysOpenLang settings.
 * Filter the Media Library and media selectors by the current content language in separate mode.
 * Hide legacy translated attachment copies reversibly in unified mode without deleting files or records.
 
@@ -294,7 +294,7 @@ They are preserved by default. See the Privacy section for the explicit cleanup 
 
 = 1.6.2 =
 
-* Register the Global content screen after the OpenLingua parent menu so administrators can access it correctly.
+* Register the Global content screen after the SysOpenLang parent menu so administrators can access it correctly.
 
 = 1.6.1 =
 
@@ -381,7 +381,7 @@ They are preserved by default. See the Privacy section for the explicit cleanup 
 
 = 1.2.3 =
 
-* Introduced an original OpenLingua translation workspace design with responsive field cards.
+* Introduced an original SysOpenLang translation workspace design with responsive field cards.
 
 = 1.2.2 =
 

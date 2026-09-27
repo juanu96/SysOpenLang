@@ -15,7 +15,7 @@ namespace {
 	require dirname( __DIR__ ) . '/src/contracts/interface-module.php';
 }
 
-namespace OpenLingua\Modules {
+namespace SysOpenLang\Modules {
 	final class Portability {
 		public static function snapshot() { return array( 'format' => 'openlingua-portable', 'format_version' => 1 ); }
 	}
@@ -29,7 +29,7 @@ namespace {
 		echo "PASS: {$message}\n";
 	}
 
-	$command = new \OpenLingua\Modules\CLI_Command();
+	$command = new \SysOpenLang\Modules\CLI_Command();
 	$command->export( array(), array() );
 	cli_assert( 1 === count( \WP_CLI::$lines ), 'writes one machine-readable export to standard output' );
 	cli_assert( array( 'format' => 'openlingua-portable', 'format_version' => 1 ) === json_decode( \WP_CLI::$lines[0], true ), 'outputs a portable JSON snapshot' );

@@ -1,8 +1,8 @@
 <?php
-namespace OpenLingua\Modules;
+namespace SysOpenLang\Modules;
 
-use OpenLingua\Contracts\Module;
-use OpenLingua\Database;
+use SysOpenLang\Contracts\Module;
+use SysOpenLang\Database;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -18,7 +18,7 @@ final class Portability implements Module {
 	public static function snapshot() {
 		global $wpdb;
 		return array(
-			'format' => 'openlingua-portable', 'format_version' => 1, 'plugin_version' => OPENLINGUA_VERSION,
+			'format' => 'openlingua-portable', 'format_version' => 1, 'plugin_version' => SYSOPENLANG_VERSION,
 			'generated_at' => gmdate( 'c' ), 'site_url' => home_url( '/' ),
 			'settings' => array(
 				'languages' => get_option( 'openlingua_languages', array() ),
@@ -36,10 +36,10 @@ final class Portability implements Module {
 
 	public static function merge( array $data ) {
 		if ( 'openlingua-portable' !== ( $data['format'] ?? '' ) || 1 !== absint( $data['format_version'] ?? 0 ) ) {
-			return new \WP_Error( 'openlingua_import_format', __( 'Unsupported OpenLingua import format.', 'openlingua' ) );
+			return new \WP_Error( 'openlingua_import_format', __( 'Unsupported SysOpenLang import format.', 'sysopenlang' ) );
 		}
 		$settings = (array) ( $data['settings'] ?? array() );
-		if ( ! empty( $settings['languages'] ) ) { update_option( 'openlingua_languages', \OpenLingua\Admin::sanitize_languages( $settings['languages'] ) ); }
+		if ( ! empty( $settings['languages'] ) ) { update_option( 'openlingua_languages', \SysOpenLang\Admin::sanitize_languages( $settings['languages'] ) ); }
 		if ( ! empty( $settings['default_language'] ) ) { update_option( 'openlingua_default_language', sanitize_key( $settings['default_language'] ) ); }
 		update_option( 'openlingua_menu_map', (array) ( $settings['menu_map'] ?? array() ) );
 		update_option( 'openlingua_meta_policies', (array) ( $settings['meta_policies'] ?? array() ) );
@@ -51,7 +51,7 @@ final class Portability implements Module {
 			$id   = absint( $row['element_id'] ?? 0 );
 			$exists = 'post' === $type ? get_post( $id ) : ( 'term' === $type ? get_term( $id ) : false );
 			if ( ! $id || ! $exists || is_wp_error( $exists ) ) { continue; }
-			\OpenLingua\Translations::assign( $type, $id, sanitize_key( $row['language'] ?? '' ), sanitize_text_field( $row['group_uuid'] ?? '' ), sanitize_key( $row['source_language'] ?? '' ) );
+			\SysOpenLang\Translations::assign( $type, $id, sanitize_key( $row['language'] ?? '' ), sanitize_text_field( $row['group_uuid'] ?? '' ), sanitize_key( $row['source_language'] ?? '' ) );
 		}
 		global $wpdb;
 		$table = Database::table( 'strings' );
@@ -68,7 +68,7 @@ final class Portability implements Module {
 
 	public static function analyze( array $data ) {
 		if ( 'openlingua-portable' !== ( $data['format'] ?? '' ) || 1 !== absint( $data['format_version'] ?? 0 ) ) {
-			return new \WP_Error( 'openlingua_import_format', __( 'Unsupported OpenLingua import format.', 'openlingua' ) );
+			return new \WP_Error( 'openlingua_import_format', __( 'Unsupported SysOpenLang import format.', 'sysopenlang' ) );
 		}
 		$report = array( 'relationships' => 0, 'strings' => 0, 'missing_content' => 0, 'invalid_rows' => 0, 'conflicts' => 0 );
 		foreach ( (array) ( $data['translations'] ?? array() ) as $row ) {
@@ -78,7 +78,7 @@ final class Portability implements Module {
 			if ( ! in_array( $type, array( 'post', 'term' ), true ) || ! $id || ! preg_match( '/^[a-z][a-z0-9_-]{1,19}$/', $language ) ) { $report['invalid_rows']++; continue; }
 			$exists = 'post' === $type ? get_post( $id ) : get_term( $id );
 			if ( ! $exists || is_wp_error( $exists ) ) { $report['missing_content']++; continue; }
-			$current = \OpenLingua\Translations::row( $type, $id );
+			$current = \SysOpenLang\Translations::row( $type, $id );
 			if ( $current && ( $current->language !== $language || $current->group_uuid !== sanitize_text_field( $row['group_uuid'] ?? '' ) ) ) { $report['conflicts']++; }
 			$report['relationships']++;
 		}
@@ -90,21 +90,21 @@ final class Portability implements Module {
 	}
 
 	public static function admin_menu() {
-		add_submenu_page( 'openlingua', __( 'Import and export', 'openlingua' ), __( 'Tools', 'openlingua' ), 'manage_options', 'openlingua-tools', array( __CLASS__, 'page' ) );
+		add_submenu_page( 'openlingua', __( 'Import and export', 'sysopenlang' ), __( 'Tools', 'sysopenlang' ), 'manage_options', 'openlingua-tools', array( __CLASS__, 'page' ) );
 	}
 
 	public static function page() {
 		$token = isset( $_GET['preview'] ) ? sanitize_key( wp_unslash( $_GET['preview'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only preview token.
 		if ( $token ) { self::preview_page( $token ); return; }
-		echo '<div class="wrap"><h1>' . esc_html__( 'Import and export', 'openlingua' ) . '</h1><h2>' . esc_html__( 'Export', 'openlingua' ) . '</h2><p>' . esc_html__( 'Download languages, relationships, strings, menus, and field policies as JSON.', 'openlingua' ) . '</p>';
+		echo '<div class="wrap"><h1>' . esc_html__( 'Import and export', 'sysopenlang' ) . '</h1><h2>' . esc_html__( 'Export', 'sysopenlang' ) . '</h2><p>' . esc_html__( 'Download languages, relationships, strings, menus, and field policies as JSON.', 'sysopenlang' ) . '</p>';
 		$url = wp_nonce_url( add_query_arg( 'action', 'openlingua_export', admin_url( 'admin-post.php' ) ), 'openlingua_export' );
-		echo '<p><a class="button button-primary" href="' . esc_url( $url ) . '">' . esc_html__( 'Download export', 'openlingua' ) . '</a></p><hr><h2>' . esc_html__( 'Merge import', 'openlingua' ) . '</h2><p>' . esc_html__( 'OpenLingua validates the file and shows a preview before changing the site. A restorable backup is created when you confirm.', 'openlingua' ) . '</p><form method="post" enctype="multipart/form-data" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="openlingua_import">';
+		echo '<p><a class="button button-primary" href="' . esc_url( $url ) . '">' . esc_html__( 'Download export', 'sysopenlang' ) . '</a></p><hr><h2>' . esc_html__( 'Merge import', 'sysopenlang' ) . '</h2><p>' . esc_html__( 'SysOpenLang validates the file and shows a preview before changing the site. A restorable backup is created when you confirm.', 'sysopenlang' ) . '</p><form method="post" enctype="multipart/form-data" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="openlingua_import">';
 		wp_nonce_field( 'openlingua_import' );
-		echo '<input type="file" name="openlingua_file" accept="application/json,.json" required>'; submit_button( __( 'Validate and preview', 'openlingua' ) );
+		echo '<input type="file" name="openlingua_file" accept="application/json,.json" required>'; submit_button( __( 'Validate and preview', 'sysopenlang' ) );
 		$backup = get_option( 'openlingua_last_import_backup', array() );
 		if ( ! empty( $backup['snapshot'] ) ) {
 			$rollback = wp_nonce_url( add_query_arg( 'action', 'openlingua_rollback_import', admin_url( 'admin-post.php' ) ), 'openlingua_rollback_import' );
-			echo '<hr><h2>' . esc_html__( 'Last import backup', 'openlingua' ) . '</h2><p>' . esc_html( sprintf( /* translators: %s: backup date. */ __( 'A backup from %s is available.', 'openlingua' ), $backup['created_at'] ?? '' ) ) . '</p><p><a class="button" href="' . esc_url( $rollback ) . '">' . esc_html__( 'Restore pre-import state', 'openlingua' ) . '</a></p>';
+			echo '<hr><h2>' . esc_html__( 'Last import backup', 'sysopenlang' ) . '</h2><p>' . esc_html( sprintf( /* translators: %s: backup date. */ __( 'A backup from %s is available.', 'sysopenlang' ), $backup['created_at'] ?? '' ) ) . '</p><p><a class="button" href="' . esc_url( $rollback ) . '">' . esc_html__( 'Restore pre-import state', 'sysopenlang' ) . '</a></p>';
 		}
 		echo '</form></div>';
 	}
@@ -112,26 +112,26 @@ final class Portability implements Module {
 	private static function preview_page( $token ) {
 		$key = self::preview_key( $token );
 		$data = get_transient( $key );
-		$report = is_array( $data ) ? self::analyze( $data ) : new \WP_Error( 'openlingua_preview_expired', __( 'The import preview expired. Upload the file again.', 'openlingua' ) );
+		$report = is_array( $data ) ? self::analyze( $data ) : new \WP_Error( 'openlingua_preview_expired', __( 'The import preview expired. Upload the file again.', 'sysopenlang' ) );
 		if ( is_wp_error( $report ) ) { wp_die( esc_html( $report->get_error_message() ) ); }
-		echo '<div class="wrap"><h1>' . esc_html__( 'Import preview', 'openlingua' ) . '</h1><p>' . esc_html__( 'Review this summary before OpenLingua changes the site.', 'openlingua' ) . '</p><table class="widefat striped"><tbody>';
-		$labels = array( 'relationships' => __( 'Valid translation relationships', 'openlingua' ), 'strings' => __( 'Valid interface strings', 'openlingua' ), 'conflicts' => __( 'Existing relationships that will be updated', 'openlingua' ), 'missing_content' => __( 'Rows skipped because content is missing', 'openlingua' ), 'invalid_rows' => __( 'Invalid rows that will be skipped', 'openlingua' ) );
+		echo '<div class="wrap"><h1>' . esc_html__( 'Import preview', 'sysopenlang' ) . '</h1><p>' . esc_html__( 'Review this summary before SysOpenLang changes the site.', 'sysopenlang' ) . '</p><table class="widefat striped"><tbody>';
+		$labels = array( 'relationships' => __( 'Valid translation relationships', 'sysopenlang' ), 'strings' => __( 'Valid interface strings', 'sysopenlang' ), 'conflicts' => __( 'Existing relationships that will be updated', 'sysopenlang' ), 'missing_content' => __( 'Rows skipped because content is missing', 'sysopenlang' ), 'invalid_rows' => __( 'Invalid rows that will be skipped', 'sysopenlang' ) );
 		foreach ( $labels as $key_name => $label ) { echo '<tr><th>' . esc_html( $label ) . '</th><td>' . absint( $report[ $key_name ] ) . '</td></tr>'; }
 		echo '</tbody></table><form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="openlingua_confirm_import"><input type="hidden" name="preview" value="' . esc_attr( $token ) . '">';
 		wp_nonce_field( 'openlingua_confirm_import_' . $token );
-		submit_button( __( 'Create backup and merge', 'openlingua' ), 'primary', 'submit', false );
-		echo ' <a class="button" href="' . esc_url( admin_url( 'admin.php?page=openlingua-tools' ) ) . '">' . esc_html__( 'Cancel', 'openlingua' ) . '</a></form></div>';
+		submit_button( __( 'Create backup and merge', 'sysopenlang' ), 'primary', 'submit', false );
+		echo ' <a class="button" href="' . esc_url( admin_url( 'admin.php?page=openlingua-tools' ) ) . '">' . esc_html__( 'Cancel', 'sysopenlang' ) . '</a></form></div>';
 	}
 
 	public static function export_download() {
-		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'openlingua' ) ); }
+		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'sysopenlang' ) ); }
 		check_admin_referer( 'openlingua_export' );
 		nocache_headers(); header( 'Content-Type: application/json; charset=utf-8' ); header( 'Content-Disposition: attachment; filename=openlingua-export-' . gmdate( 'Y-m-d' ) . '.json' );
 		echo wp_json_encode( self::snapshot(), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE ); exit;
 	}
 
 	public static function import_upload() {
-		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'openlingua' ) ); }
+		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'sysopenlang' ) ); }
 		check_admin_referer( 'openlingua_import' );
 		$file = null;
 		if ( isset( $_FILES['openlingua_file'] ) && is_array( $_FILES['openlingua_file'] ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Uploaded-file fields are validated individually below.
@@ -143,11 +143,11 @@ final class Portability implements Module {
 				'size'     => absint( $uploaded['size'] ?? 0 ),
 			);
 		}
-		if ( ! $file || UPLOAD_ERR_OK !== $file['error'] || $file['size'] > 10 * MB_IN_BYTES || ! is_uploaded_file( $file['tmp_name'] ) ) { wp_die( esc_html__( 'Invalid or oversized import file.', 'openlingua' ) ); }
+		if ( ! $file || UPLOAD_ERR_OK !== $file['error'] || $file['size'] > 10 * MB_IN_BYTES || ! is_uploaded_file( $file['tmp_name'] ) ) { wp_die( esc_html__( 'Invalid or oversized import file.', 'sysopenlang' ) ); }
 		$filetype = wp_check_filetype_and_ext( $file['tmp_name'], $file['name'], array( 'json' => 'application/json' ) );
-		if ( 'json' !== ( $filetype['ext'] ?? '' ) ) { wp_die( esc_html__( 'Only JSON import files are allowed.', 'openlingua' ) ); }
+		if ( 'json' !== ( $filetype['ext'] ?? '' ) ) { wp_die( esc_html__( 'Only JSON import files are allowed.', 'sysopenlang' ) ); }
 		$data = json_decode( file_get_contents( $file['tmp_name'] ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$report = is_array( $data ) ? self::analyze( $data ) : new \WP_Error( 'openlingua_json', __( 'Invalid JSON document.', 'openlingua' ) );
+		$report = is_array( $data ) ? self::analyze( $data ) : new \WP_Error( 'openlingua_json', __( 'Invalid JSON document.', 'sysopenlang' ) );
 		if ( is_wp_error( $report ) ) { wp_die( esc_html( $report->get_error_message() ) ); }
 		$token = wp_generate_password( 20, false, false );
 		set_transient( self::preview_key( $token ), $data, 30 * MINUTE_IN_SECONDS );
@@ -155,11 +155,11 @@ final class Portability implements Module {
 	}
 
 	public static function confirm_import() {
-		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'openlingua' ) ); }
+		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'sysopenlang' ) ); }
 		$token = isset( $_POST['preview'] ) ? sanitize_key( wp_unslash( $_POST['preview'] ) ) : '';
 		check_admin_referer( 'openlingua_confirm_import_' . $token );
 		$data = get_transient( self::preview_key( $token ) );
-		if ( ! is_array( $data ) ) { wp_die( esc_html__( 'The import preview expired. Upload the file again.', 'openlingua' ) ); }
+		if ( ! is_array( $data ) ) { wp_die( esc_html__( 'The import preview expired. Upload the file again.', 'sysopenlang' ) ); }
 		update_option( 'openlingua_last_import_backup', array( 'created_at' => current_time( 'mysql' ), 'snapshot' => self::snapshot() ), false );
 		$result = self::merge( $data );
 		if ( is_wp_error( $result ) ) { wp_die( esc_html( $result->get_error_message() ) ); }
@@ -168,10 +168,10 @@ final class Portability implements Module {
 	}
 
 	public static function rollback_import() {
-		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'openlingua' ) ); }
+		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'sysopenlang' ) ); }
 		check_admin_referer( 'openlingua_rollback_import' );
 		$backup = get_option( 'openlingua_last_import_backup', array() );
-		if ( empty( $backup['snapshot'] ) || ! is_array( $backup['snapshot'] ) ) { wp_die( esc_html__( 'No import backup is available.', 'openlingua' ) ); }
+		if ( empty( $backup['snapshot'] ) || ! is_array( $backup['snapshot'] ) ) { wp_die( esc_html__( 'No import backup is available.', 'sysopenlang' ) ); }
 		self::restore_snapshot( $backup['snapshot'] );
 		delete_option( 'openlingua_last_import_backup' );
 		wp_safe_redirect( add_query_arg( array( 'page' => 'openlingua-tools', 'restored' => 1 ), admin_url( 'admin.php' ) ) ); exit;
@@ -183,8 +183,8 @@ final class Portability implements Module {
 			if ( array_key_exists( $key, $settings ) ) { update_option( 'openlingua_' . $key, $settings[ $key ] ); }
 		}
 		global $wpdb;
-		$wpdb->query( $wpdb->prepare( 'DELETE FROM %i', Database::table( 'translations' ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Explicit administrator-requested rollback of OpenLingua custom-table data.
-		$wpdb->query( $wpdb->prepare( 'DELETE FROM %i', Database::table( 'strings' ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Explicit administrator-requested rollback of OpenLingua custom-table data.
+		$wpdb->query( $wpdb->prepare( 'DELETE FROM %i', Database::table( 'translations' ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Explicit administrator-requested rollback of SysOpenLang custom-table data.
+		$wpdb->query( $wpdb->prepare( 'DELETE FROM %i', Database::table( 'strings' ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Explicit administrator-requested rollback of SysOpenLang custom-table data.
 		self::merge( $snapshot );
 	}
 

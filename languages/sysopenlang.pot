@@ -1,9 +1,9 @@
-# Copyright (C) 2026 OpenLingua Contributors
+# Copyright (C) 2026 SysOpenLang Contributors
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: OpenLingua 1.15.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/openlingua\n"
+"Project-Id-Version: SysOpenLang 1.15.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/sysopenlang\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -12,31 +12,31 @@ msgstr ""
 "POT-Creation-Date: 2026-08-09T10:18:01+02:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
-"X-Domain: openlingua\n"
+"X-Domain: sysopenlang\n"
 
 #. Plugin Name of the plugin
-#: openlingua.php
+#: sysopenlang.php
 #: src/class-admin.php:19
-msgid "OpenLingua"
+msgid "SysOpenLang"
 msgstr ""
 
 #. Plugin URI of the plugin
-#: openlingua.php
-msgid "https://github.com/juanu96/OpenLingua"
+#: sysopenlang.php
+msgid "https://wordpress.org/plugins/sysopenlang/"
 msgstr ""
 
 #. Description of the plugin
-#: openlingua.php
+#: sysopenlang.php
 msgid "Multilingual content, custom post types, custom fields and strings for WordPress."
 msgstr ""
 
 #. Author of the plugin
-#: openlingua.php
-msgid "OpenLingua Contributors"
+#: sysopenlang.php
+msgid "SysOpenLang Contributors"
 msgstr ""
 
 #. Author URI of the plugin
-#: openlingua.php
+#: sysopenlang.php
 msgid "https://profiles.wordpress.org/juanu96/"
 msgstr ""
 
@@ -188,7 +188,7 @@ msgid "You cannot create this translation."
 msgstr ""
 
 #: src/class-content.php:92
-msgid "Media files are shared or separated by language from the OpenLingua media settings and are not duplicated as translations."
+msgid "Media files are shared or separated by language from the SysOpenLang media settings and are not duplicated as translations."
 msgstr ""
 
 #: src/class-content.php:217
@@ -502,7 +502,7 @@ msgid "Shortcode translation saved."
 msgstr ""
 
 #: src/class-shortcode-admin.php:46
-msgid "OpenLingua lists every shortcode registered in WordPress. Translation icons become available after a shortcode has rendered and its visible strings have been detected."
+msgid "SysOpenLang lists every shortcode registered in WordPress. Translation icons become available after a shortcode has rendered and its visible strings have been detected."
 msgstr ""
 
 #: src/class-shortcode-admin.php:47
@@ -723,7 +723,7 @@ msgid "Source term not found."
 msgstr ""
 
 #: src/class-translation-editor.php:26
-msgid "Edit this translation with OpenLingua"
+msgid "Edit this translation with SysOpenLang"
 msgstr ""
 
 #: src/class-translation-editor.php:31
@@ -774,7 +774,7 @@ msgid "Translating"
 msgstr ""
 
 #: src/class-translation-editor.php:128
-msgid "Automatic translation queued. You may leave this page; OpenLingua will notify you when it is ready to review."
+msgid "Automatic translation queued. You may leave this page; SysOpenLang will notify you when it is ready to review."
 msgstr ""
 
 #: src/class-translation-editor.php:129
@@ -980,7 +980,7 @@ msgid "The storage needed for translations is working correctly."
 msgstr ""
 
 #: src/modules/class-diagnostics.php:52
-msgid "One or more translation tables are missing. OpenLingua cannot reliably save all translation data."
+msgid "One or more translation tables are missing. SysOpenLang cannot reliably save all translation data."
 msgstr ""
 
 #: src/modules/class-diagnostics.php:52
@@ -1037,11 +1037,11 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: src/modules/class-diagnostics.php:60
-msgid "OpenLingua site health"
+msgid "SysOpenLang site health"
 msgstr ""
 
 #: src/modules/class-diagnostics.php:60
-msgid "A simple overview of the features OpenLingua needs to translate your website."
+msgid "A simple overview of the features SysOpenLang needs to translate your website."
 msgstr ""
 
 #: src/modules/class-diagnostics.php:61
@@ -1049,7 +1049,7 @@ msgid "Some items need your attention"
 msgstr ""
 
 #: src/modules/class-diagnostics.php:61
-msgid "OpenLingua is ready"
+msgid "SysOpenLang is ready"
 msgstr ""
 
 #: src/modules/class-diagnostics.php:61
@@ -1077,7 +1077,7 @@ msgid "Installation details"
 msgstr ""
 
 #: src/modules/class-diagnostics.php:69
-msgid "OpenLingua version"
+msgid "SysOpenLang version"
 msgstr ""
 
 #: src/modules/class-diagnostics.php:69
@@ -1102,7 +1102,7 @@ msgid "Visual builder field inspector"
 msgstr ""
 
 #: src/modules/class-diagnostics.php:77
-msgid "Check which custom fields OpenLingua can safely recognize as structured visual-builder content. This tool does not change the page."
+msgid "Check which custom fields SysOpenLang can safely recognize as structured visual-builder content. This tool does not change the page."
 msgstr ""
 
 #: src/modules/class-diagnostics.php:78
@@ -1319,11 +1319,11 @@ msgid "Every five minutes"
 msgstr ""
 
 #: src/modules/class-jobs.php:222
-msgid "The worker stopped before finishing. OpenLingua queued the job again."
+msgid "The worker stopped before finishing. SysOpenLang queued the job again."
 msgstr ""
 
 #: src/modules/class-jobs.php:248
-msgid "OpenLingua finished the automatic translation. It is ready for review."
+msgid "SysOpenLang finished the automatic translation. It is ready for review."
 msgstr ""
 
 #: src/modules/class-jobs.php:248
@@ -1403,7 +1403,7 @@ msgid "Attempts: %s"
 msgstr ""
 
 #: src/modules/class-language-settings.php:41
-msgid "OpenLingua language settings"
+msgid "SysOpenLang language settings"
 msgstr ""
 
 #: src/modules/class-language-settings.php:50
@@ -1532,7 +1532,7 @@ msgid "Media library by language"
 msgstr ""
 
 #: src/modules/class-language-settings.php:104
-msgid "Choose which WordPress media files are available while editing content. OpenLingua never needs to duplicate an attachment merely to translate a page."
+msgid "Choose which WordPress media files are available while editing content. SysOpenLang never needs to duplicate an attachment merely to translate a page."
 msgstr ""
 
 #: src/modules/class-language-settings.php:105
@@ -1643,7 +1643,7 @@ msgid "Language switcher in navigation menus"
 msgstr ""
 
 #: src/modules/class-menus.php:90
-msgid "Choose the theme menu locations where OpenLingua should insert the language switcher automatically."
+msgid "Choose the theme menu locations where SysOpenLang should insert the language switcher automatically."
 msgstr ""
 
 #: src/modules/class-menus.php:95
@@ -1707,7 +1707,7 @@ msgid "The final typography and colors are inherited from your WordPress theme."
 msgstr ""
 
 #: src/modules/class-menus.php:99
-msgid "Languages without a published translation of the current content are hidden automatically. Footer placement remains available under OpenLingua → Language switcher."
+msgid "Languages without a published translation of the current content are hidden automatically. Footer placement remains available under SysOpenLang → Language switcher."
 msgstr ""
 
 #: src/modules/class-menus.php:129
@@ -1731,7 +1731,7 @@ msgid "Assign a menu to the default language before creating its translation."
 msgstr ""
 
 #: src/modules/class-menus.php:243
-msgid "OpenLingua translations"
+msgid "SysOpenLang translations"
 msgstr ""
 
 #: src/modules/class-menus.php:271
@@ -1743,7 +1743,7 @@ msgid "Edit a separate menu for each language. Navigation labels can be changed 
 msgstr ""
 
 #: src/modules/class-menus.php:290
-msgid "Assign this menu to a language from OpenLingua → Menus to link its translations."
+msgid "Assign this menu to a language from SysOpenLang → Menus to link its translations."
 msgstr ""
 
 #: src/modules/class-menus.php:291
@@ -1752,7 +1752,7 @@ msgstr ""
 
 #: src/modules/class-metadata.php:44
 #: src/modules/class-metadata.php:58
-msgid "OpenLingua advanced settings"
+msgid "SysOpenLang advanced settings"
 msgstr ""
 
 #: src/modules/class-metadata.php:44
@@ -1796,7 +1796,7 @@ msgid "Automatic translation with OpenAI"
 msgstr ""
 
 #: src/modules/class-openai-provider.php:45
-msgid "Connect your own OpenAI API account. OpenLingua sends only the content selected for an automatic translation job."
+msgid "Connect your own OpenAI API account. SysOpenLang sends only the content selected for an automatic translation job."
 msgstr ""
 
 #: src/modules/class-openai-provider.php:47
@@ -1874,12 +1874,12 @@ msgid "OpenAI returned HTTP status %d."
 msgstr ""
 
 #: src/modules/class-openai-provider.php:181
-msgid "OpenAI returned a response that OpenLingua could not read."
+msgid "OpenAI returned a response that SysOpenLang could not read."
 msgstr ""
 
 #: src/modules/class-portability.php:39
 #: src/modules/class-portability.php:71
-msgid "Unsupported OpenLingua import format."
+msgid "Unsupported SysOpenLang import format."
 msgstr ""
 
 #: src/modules/class-portability.php:93
@@ -1908,7 +1908,7 @@ msgid "Merge import"
 msgstr ""
 
 #: src/modules/class-portability.php:101
-msgid "OpenLingua validates the file and shows a preview before changing the site. A restorable backup is created when you confirm."
+msgid "SysOpenLang validates the file and shows a preview before changing the site. A restorable backup is created when you confirm."
 msgstr ""
 
 #: src/modules/class-portability.php:103
@@ -1940,7 +1940,7 @@ msgid "Import preview"
 msgstr ""
 
 #: src/modules/class-portability.php:117
-msgid "Review this summary before OpenLingua changes the site."
+msgid "Review this summary before SysOpenLang changes the site."
 msgstr ""
 
 #: src/modules/class-portability.php:118
@@ -1984,15 +1984,15 @@ msgid "No import backup is available."
 msgstr ""
 
 #: src/modules/class-privacy.php:16
-msgid "OpenLingua stores language relationships, translated strings, settings, workflow status, and translation-job metadata in this WordPress database. This data is preserved when the plugin is removed unless the site owner explicitly enables permanent removal before uninstalling."
+msgid "SysOpenLang stores language relationships, translated strings, settings, workflow status, and translation-job metadata in this WordPress database. This data is preserved when the plugin is removed unless the site owner explicitly enables permanent removal before uninstalling."
 msgstr ""
 
 #: src/modules/class-privacy.php:17
-msgid "Manual translation does not require an external service. If an administrator configures OpenAI, Anthropic, Google Gemini, or Google Cloud Translation and explicitly starts an automatic translation job, OpenLingua sends the selected content, source and target language identifiers, translation instructions, and the site owner's API credential to that provider. Model-list requests send the credential but no site content. The site owner should disclose the selected provider and review its terms, privacy policy, retention settings, billing, and consent requirements."
+msgid "Manual translation does not require an external service. If an administrator configures OpenAI, Anthropic, Google Gemini, or Google Cloud Translation and explicitly starts an automatic translation job, SysOpenLang sends the selected content, source and target language identifiers, translation instructions, and the site owner's API credential to that provider. Model-list requests send the credential but no site content. The site owner should disclose the selected provider and review its terms, privacy policy, retention settings, billing, and consent requirements."
 msgstr ""
 
 #: src/modules/class-privacy.php:18
-msgid "OpenLingua does not include analytics or usage tracking."
+msgid "SysOpenLang does not include analytics or usage tracking."
 msgstr ""
 
 #: src/modules/class-providers.php:53
@@ -2026,5 +2026,5 @@ msgstr ""
 #. translators: %s: translation provider name.
 #: src/modules/trait-provider-secrets.php:25
 #, php-format
-msgid "%s returned a response that OpenLingua could not read."
+msgid "%s returned a response that SysOpenLang could not read."
 msgstr ""

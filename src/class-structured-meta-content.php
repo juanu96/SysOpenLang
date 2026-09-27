@@ -1,14 +1,14 @@
 <?php
-namespace OpenLingua;
+namespace SysOpenLang;
 
-use OpenLingua\Contracts\Content_Extractor;
+use SysOpenLang\Contracts\Content_Extractor;
 
 defined( 'ABSPATH' ) || exit;
 
 /** Safely translates builder documents stored as JSON or nested meta arrays. */
 final class Structured_Meta_Content implements Content_Extractor {
 	public function id() { return 'structured-meta'; }
-	public function label() { return __( 'Visual builder content', 'openlingua' ); }
+	public function label() { return __( 'Visual builder content', 'sysopenlang' ); }
 	public function supports( $post ) { return (bool) self::documents( $post ); }
 
 	public function extract( $post ) {

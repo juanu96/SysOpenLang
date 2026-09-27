@@ -9,7 +9,7 @@ namespace {
 	function esc_attr( $value ) { return htmlspecialchars( $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' ); }
 }
 
-namespace OpenLingua {
+namespace SysOpenLang {
 	$GLOBALS['shortcode_tags'] = array(
 		'sample_widget' => '__return_empty_string',
 		'revslider_divi' => '__return_empty_string',

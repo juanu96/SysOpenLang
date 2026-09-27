@@ -1,5 +1,5 @@
 <?php
-namespace OpenLingua;
+namespace SysOpenLang;
 
 defined( 'ABSPATH' ) || exit;
 

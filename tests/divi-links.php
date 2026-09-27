@@ -40,12 +40,12 @@ function divi_link_assert( $condition, $message ) {
 	echo "PASS: {$message}\n";
 }
 
-\OpenLingua\Languages::set_current( 'es' );
-\OpenLingua\Divi_Content::hooks();
+\SysOpenLang\Languages::set_current( 'es' );
+\SysOpenLang\Divi_Content::hooks();
 global $openlingua_test_filters;
 divi_link_assert( isset( $openlingua_test_filters['et_pb_module_shortcode_attributes'] ), 'registers the native Divi module render hook' );
 
-$links = \OpenLingua\Divi_Content::localize_home_links( array(
+$links = \SysOpenLang\Divi_Content::localize_home_links( array(
 	'logo_link_url' => 'https://example.test/',
 	'url' => '/en/',
 	'button_url' => 'https://example.test/contact/',
@@ -63,4 +63,4 @@ divi_link_assert( 'https://example.test/es/#top' === $links['logo_link_url_with_
 divi_link_assert( '#FFFFFF' === $links['title_text_color'] && '#000000' === $links['background_color'], 'does not treat Divi color values as language home links' );
 divi_link_assert( '#top' === $links['anchor_link_url'], 'does not localize fragment-only anchors' );
 
-echo "All OpenLingua Divi home-link tests passed.\n";
+echo "All SysOpenLang Divi home-link tests passed.\n";

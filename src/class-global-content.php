@@ -1,5 +1,5 @@
 <?php
-namespace OpenLingua;
+namespace SysOpenLang;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -12,22 +12,22 @@ final class Global_Content {
 
 	private static function types() {
 		return array(
-			'wp_template'      => __( 'Templates', 'openlingua' ),
-			'wp_template_part' => __( 'Template parts', 'openlingua' ),
-			'wp_navigation'    => __( 'Navigation', 'openlingua' ),
-			'wp_block'         => __( 'Patterns', 'openlingua' ),
+			'wp_template'      => __( 'Templates', 'sysopenlang' ),
+			'wp_template_part' => __( 'Template parts', 'sysopenlang' ),
+			'wp_navigation'    => __( 'Navigation', 'sysopenlang' ),
+			'wp_block'         => __( 'Patterns', 'sysopenlang' ),
 		);
 	}
 
 	public static function hooks() {
-		// Register after OpenLingua's parent menu so WordPress grants access to the submenu route.
+		// Register after SysOpenLang's parent menu so WordPress grants access to the submenu route.
 		add_action( 'admin_menu', array( __CLASS__, 'menu' ), 17 );
 		add_filter( 'get_block_template', array( __CLASS__, 'translate_template' ), 20, 3 );
 		add_filter( 'get_block_templates', array( __CLASS__, 'translate_templates' ), 20, 3 );
 	}
 
 	public static function menu() {
-		add_submenu_page( 'openlingua', __( 'Global content translations', 'openlingua' ), __( 'Global content', 'openlingua' ), 'edit_theme_options', self::PAGE, array( __CLASS__, 'page' ) );
+		add_submenu_page( 'openlingua', __( 'Global content translations', 'sysopenlang' ), __( 'Global content', 'sysopenlang' ), 'edit_theme_options', self::PAGE, array( __CLASS__, 'page' ) );
 	}
 
 	public static function page() {
@@ -44,15 +44,15 @@ final class Global_Content {
 		} ) );
 		$return_to = add_query_arg( array( 'page' => self::PAGE, 'content_type' => $type, 'lang' => $language ), admin_url( 'admin.php' ) );
 
-		echo '<div class="wrap openlingua-global-content"><h1>' . esc_html__( 'Global content translations', 'openlingua' ) . '</h1>';
-		echo '<p class="description">' . esc_html__( 'Translate block templates, headers, footers, navigation blocks and reusable patterns from one place.', 'openlingua' ) . '</p>';
-		echo '<form method="get"><input type="hidden" name="page" value="' . esc_attr( self::PAGE ) . '"><label for="openlingua-global-type" class="screen-reader-text">' . esc_html__( 'Content type', 'openlingua' ) . '</label><select id="openlingua-global-type" name="content_type">';
+		echo '<div class="wrap openlingua-global-content"><h1>' . esc_html__( 'Global content translations', 'sysopenlang' ) . '</h1>';
+		echo '<p class="description">' . esc_html__( 'Translate block templates, headers, footers, navigation blocks and reusable patterns from one place.', 'sysopenlang' ) . '</p>';
+		echo '<form method="get"><input type="hidden" name="page" value="' . esc_attr( self::PAGE ) . '"><label for="openlingua-global-type" class="screen-reader-text">' . esc_html__( 'Content type', 'sysopenlang' ) . '</label><select id="openlingua-global-type" name="content_type">';
 		foreach ( $types as $value => $label ) { echo '<option value="' . esc_attr( $value ) . '" ' . selected( $type, $value, false ) . '>' . esc_html( $label ) . '</option>'; }
-		echo '</select><label for="openlingua-global-language" class="screen-reader-text">' . esc_html__( 'Source language', 'openlingua' ) . '</label><select id="openlingua-global-language" name="lang">';
+		echo '</select><label for="openlingua-global-language" class="screen-reader-text">' . esc_html__( 'Source language', 'sysopenlang' ) . '</label><select id="openlingua-global-language" name="lang">';
 		foreach ( Languages::all() as $code => $item ) { echo '<option value="' . esc_attr( $code ) . '" ' . selected( $language, $code, false ) . '>' . esc_html( ( $item['flag'] ?? '🌐' ) . ' ' . $item['name'] ) . '</option>'; }
-		echo '</select> '; submit_button( __( 'Filter', 'openlingua' ), 'secondary', '', false ); echo '</form>';
-		if ( ! $posts ) { echo '<div class="notice notice-info inline"><p>' . esc_html__( 'No global content exists for this type and language.', 'openlingua' ) . '</p></div></div>'; return; }
-		echo '<table class="wp-list-table widefat fixed striped"><thead><tr><th>' . esc_html__( 'Title', 'openlingua' ) . '</th><th>' . esc_html__( 'Type', 'openlingua' ) . '</th>';
+		echo '</select> '; submit_button( __( 'Filter', 'sysopenlang' ), 'secondary', '', false ); echo '</form>';
+		if ( ! $posts ) { echo '<div class="notice notice-info inline"><p>' . esc_html__( 'No global content exists for this type and language.', 'sysopenlang' ) . '</p></div></div>'; return; }
+		echo '<table class="wp-list-table widefat fixed striped"><thead><tr><th>' . esc_html__( 'Title', 'sysopenlang' ) . '</th><th>' . esc_html__( 'Type', 'sysopenlang' ) . '</th>';
 		foreach ( Languages::all() as $code => $item ) { if ( $code !== $language ) { echo '<th><span title="' . esc_attr( $item['name'] ) . '">' . esc_html( $item['flag'] ?? strtoupper( $code ) ) . '</span></th>'; } }
 		echo '</tr></thead><tbody>';
 		foreach ( $posts as $post ) {
@@ -69,12 +69,12 @@ final class Global_Content {
 		if ( ! empty( $group[ $language ] ) && 'trash' !== get_post_status( $group[ $language ] ) ) {
 			$url = Translation_Editor::url( $post_id, $group[ $language ], $return_to );
 			/* translators: %s: language name. */
-			$label = sprintf( __( 'Edit %s translation', 'openlingua' ), $name );
+			$label = sprintf( __( 'Edit %s translation', 'sysopenlang' ), $name );
 			$icon = 'dashicons-edit';
 		} else {
 			$url = wp_nonce_url( add_query_arg( array( 'action' => 'openlingua_duplicate', 'post_id' => $post_id, 'language' => $language, 'redirect_to' => $return_to ), admin_url( 'admin-post.php' ) ), 'openlingua_duplicate_' . $post_id );
 			/* translators: %s: language name. */
-			$label = sprintf( __( 'Add %s translation', 'openlingua' ), $name );
+			$label = sprintf( __( 'Add %s translation', 'sysopenlang' ), $name );
 			$icon = 'dashicons-plus-alt2';
 		}
 		echo '<a href="' . esc_url( $url ) . '" class="openlingua-translation-action" aria-label="' . esc_attr( $label ) . '" title="' . esc_attr( $label ) . '"><span class="dashicons ' . esc_attr( $icon ) . '" aria-hidden="true"></span></a>';

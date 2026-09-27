@@ -28,7 +28,7 @@ namespace {
 	$GLOBALS['wpdb'] = new Media_WPDB();
 }
 
-namespace OpenLingua {
+namespace SysOpenLang {
 	class Database { public static function table( $name ) { return 'wp_openlingua_' . $name; } }
 	class Admin { public static $language = 'es'; public static function content_language() { return self::$language; } }
 	class Languages {
@@ -41,7 +41,7 @@ namespace OpenLingua {
 	class Translations { public static function assign( $type, $id, $language ) { $GLOBALS['media_assignments'][] = compact( 'type', 'id', 'language' ); } }
 }
 
-namespace OpenLingua\Modules {
+namespace SysOpenLang\Modules {
 	class Language_Settings { public static function get() { return array_replace( array( 'media_mode' => 'unified' ), (array) get_option( 'openlingua_language_settings', array() ) ); } }
 }
 
@@ -61,28 +61,28 @@ namespace {
 		public function set( $key, $value ) { $this->vars[ $key ] = $value; }
 	}
 
-	media_assert( 'unified' === \OpenLingua\Modules\Media::mode(), 'uses a unified media library by default' );
-	\OpenLingua\Modules\Media::assign_uploaded_attachment( 42 );
+	media_assert( 'unified' === \SysOpenLang\Modules\Media::mode(), 'uses a unified media library by default' );
+	\SysOpenLang\Modules\Media::assign_uploaded_attachment( 42 );
 	media_assert( array() === $GLOBALS['media_assignments'], 'does not create language relationships for unified uploads' );
 
 	$GLOBALS['media_options']['openlingua_language_settings']['media_mode'] = 'separate';
-	\OpenLingua\Modules\Media::assign_uploaded_attachment( 42 );
+	\SysOpenLang\Modules\Media::assign_uploaded_attachment( 42 );
 	media_assert( 'es' === $GLOBALS['media_assignments'][0]['language'], 'assigns new uploads to the current content language in separate mode' );
-	$modal = \OpenLingua\Modules\Media::prepare_modal_query( array( 'post_mime_type' => 'image' ) );
+	$modal = \SysOpenLang\Modules\Media::prepare_modal_query( array( 'post_mime_type' => 'image' ) );
 	media_assert( 'separate' === $modal['openlingua_media_library'] && 'es' === $modal['openlingua_media_language'], 'filters visual-builder and editor media selectors by current language' );
 
 	$query = new Media_Query( array( 'openlingua_media_library' => 'separate', 'openlingua_media_language' => 'es' ) );
-	$clauses = \OpenLingua\Modules\Media::filter_clauses( array( 'where' => '' ), $query );
+	$clauses = \SysOpenLang\Modules\Media::filter_clauses( array( 'where' => '' ), $query );
 	media_assert( false !== strpos( $clauses['where'], "language = 'es'" ), 'limits separated media queries to the selected language' );
 	$query = new Media_Query( array( 'openlingua_media_library' => 'separate', 'openlingua_media_language' => 'all' ) );
-	$clauses = \OpenLingua\Modules\Media::filter_clauses( array( 'where' => 'original' ), $query );
+	$clauses = \SysOpenLang\Modules\Media::filter_clauses( array( 'where' => 'original' ), $query );
 	media_assert( 'original' === $clauses['where'], 'keeps every attachment visible when All languages is selected' );
 
 	$query = new Media_Query( array( 'openlingua_media_library' => 'unified' ) );
-	$clauses = \OpenLingua\Modules\Media::filter_clauses( array( 'where' => '' ), $query );
+	$clauses = \SysOpenLang\Modules\Media::filter_clauses( array( 'where' => '' ), $query );
 	media_assert( false !== strpos( $clauses['where'], 'source_language' ), 'collapses legacy translated attachment records in unified mode' );
 	$GLOBALS['media_meta'][42]['_openlingua_media_texts'] = array( 'en' => array( 'alt' => 'English house' ), 'es' => array( 'alt' => 'Casa en español', 'caption' => 'Vista exterior' ) );
-	media_assert( 'Casa en español' === \OpenLingua\Modules\Media::translated_text( 42, 'alt', 'es', 'Default alt' ), 'returns translated media text without duplicating the attachment' );
-	media_assert( 'English house' === \OpenLingua\Modules\Media::translated_text( 42, 'alt', 'fr', 'Default alt' ), 'uses the configured media-text fallback chain' );
-	echo "All OpenLingua media tests passed.\n";
+	media_assert( 'Casa en español' === \SysOpenLang\Modules\Media::translated_text( 42, 'alt', 'es', 'Default alt' ), 'returns translated media text without duplicating the attachment' );
+	media_assert( 'English house' === \SysOpenLang\Modules\Media::translated_text( 42, 'alt', 'fr', 'Default alt' ), 'uses the configured media-text fallback chain' );
+	echo "All SysOpenLang media tests passed.\n";
 }

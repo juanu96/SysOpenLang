@@ -1,5 +1,5 @@
 <?php
-namespace OpenLingua;
+namespace SysOpenLang;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -34,7 +34,7 @@ final class Content {
 	public static function meta_box() {
 		foreach ( get_post_types( array( 'show_ui' => true ), 'names' ) as $post_type ) {
 			if ( 'attachment' === $post_type ) { continue; }
-			add_meta_box( 'openlingua-language', __( 'Languages', 'openlingua' ), array( __CLASS__, 'render_meta_box' ), $post_type, 'side', 'high' );
+			add_meta_box( 'openlingua-language', __( 'Languages', 'sysopenlang' ), array( __CLASS__, 'render_meta_box' ), $post_type, 'side', 'high' );
 		}
 	}
 
@@ -44,26 +44,26 @@ final class Content {
 		$current  = $row ? $row->language : ( Languages::is_valid( $admin_language ) ? $admin_language : Languages::default_code() );
 		$group    = Translations::group( 'post', $post->ID );
 		wp_nonce_field( 'openlingua_save_post', 'openlingua_nonce' );
-		echo '<p><label for="openlingua-language">' . esc_html__( 'Content language', 'openlingua' ) . '</label></p>';
+		echo '<p><label for="openlingua-language">' . esc_html__( 'Content language', 'sysopenlang' ) . '</label></p>';
 		echo '<select id="openlingua-language" name="openlingua_language" class="widefat">';
 		foreach ( Languages::all() as $code => $language ) {
 			echo '<option value="' . esc_attr( $code ) . '" ' . selected( $current, $code, false ) . '>' . esc_html( $language['name'] ) . '</option>';
 		}
-		echo '</select><hr><strong>' . esc_html__( 'Translations', 'openlingua' ) . '</strong>';
+		echo '</select><hr><strong>' . esc_html__( 'Translations', 'sysopenlang' ) . '</strong>';
 		foreach ( Languages::all() as $code => $language ) {
 			if ( $code === $current ) { continue; }
 			echo '<p>' . esc_html( $language['name'] ) . ': ';
 			if ( isset( $group[ $code ] ) ) {
-				echo '<a href="' . esc_url( Translation_Editor::url( $post->ID, $group[ $code ] ) ) . '">' . esc_html__( 'Edit translation', 'openlingua' ) . '</a>';
+				echo '<a href="' . esc_url( Translation_Editor::url( $post->ID, $group[ $code ] ) ) . '">' . esc_html__( 'Edit translation', 'sysopenlang' ) . '</a>';
 			} else {
 				$url = wp_nonce_url( add_query_arg( array( 'action' => 'openlingua_duplicate', 'post_id' => $post->ID, 'language' => $code ), admin_url( 'admin-post.php' ) ), 'openlingua_duplicate_' . $post->ID );
-				echo '<a href="' . esc_url( $url ) . '">+ ' . esc_html__( 'Create', 'openlingua' ) . '</a>';
+				echo '<a href="' . esc_url( $url ) . '">+ ' . esc_html__( 'Create', 'sysopenlang' ) . '</a>';
 			}
 			echo '</p>';
 		}
-		$status = get_post_meta( $post->ID, \OpenLingua\Modules\Workflow::STATUS_META, true ) ?: ( $row && $row->source_language ? 'draft' : 'complete' );
-		echo '<hr><p><label for="openlingua-status"><strong>' . esc_html__( 'Translation status', 'openlingua' ) . '</strong></label></p><select id="openlingua-status" name="openlingua_status" class="widefat">';
-		foreach ( \OpenLingua\Modules\Workflow::statuses() as $value => $label ) { echo '<option value="' . esc_attr( $value ) . '" ' . selected( $status, $value, false ) . '>' . esc_html( $label ) . '</option>'; }
+		$status = get_post_meta( $post->ID, \SysOpenLang\Modules\Workflow::STATUS_META, true ) ?: ( $row && $row->source_language ? 'draft' : 'complete' );
+		echo '<hr><p><label for="openlingua-status"><strong>' . esc_html__( 'Translation status', 'sysopenlang' ) . '</strong></label></p><select id="openlingua-status" name="openlingua_status" class="widefat">';
+		foreach ( \SysOpenLang\Modules\Workflow::statuses() as $value => $label ) { echo '<option value="' . esc_attr( $value ) . '" ' . selected( $status, $value, false ) . '>' . esc_html( $label ) . '</option>'; }
 		echo '</select>';
 	}
 
@@ -76,7 +76,7 @@ final class Content {
 		Translations::assign( 'post', $post_id, $language, $row ? $row->group_uuid : '', $row ? $row->source_language : '' );
 		if ( isset( $_POST['openlingua_status'] ) ) {
 			$status = sanitize_key( wp_unslash( $_POST['openlingua_status'] ) );
-			if ( isset( \OpenLingua\Modules\Workflow::statuses()[ $status ] ) ) { update_post_meta( $post_id, \OpenLingua\Modules\Workflow::STATUS_META, $status ); }
+			if ( isset( \SysOpenLang\Modules\Workflow::statuses()[ $status ] ) ) { update_post_meta( $post_id, \SysOpenLang\Modules\Workflow::STATUS_META, $status ); }
 		}
 	}
 
@@ -86,11 +86,11 @@ final class Content {
 		$return_to = isset( $_GET['redirect_to'] ) ? wp_validate_redirect( esc_url_raw( wp_unslash( $_GET['redirect_to'] ) ), '' ) : '';
 		check_admin_referer( 'openlingua_duplicate_' . $post_id );
 		if ( ! $post_id || ! Languages::is_valid( $language ) || ! current_user_can( 'openlingua_translate' ) || ! current_user_can( 'edit_post', $post_id ) ) {
-			wp_die( esc_html__( 'You cannot create this translation.', 'openlingua' ) );
+			wp_die( esc_html__( 'You cannot create this translation.', 'sysopenlang' ) );
 		}
 		$source = get_post( $post_id );
 		if ( ! $source || 'attachment' === $source->post_type ) {
-			wp_die( esc_html__( 'Media files are shared or separated by language from the OpenLingua media settings and are not duplicated as translations.', 'openlingua' ) );
+			wp_die( esc_html__( 'Media files are shared or separated by language from the SysOpenLang media settings and are not duplicated as translations.', 'sysopenlang' ) );
 		}
 		$row    = Translations::row( 'post', $post_id );
 		if ( ! $row ) {
@@ -102,7 +102,7 @@ final class Content {
 		if ( $existing ) {
 			wp_safe_redirect( Translation_Editor::url( $post_id, $existing, $return_to ) ); exit;
 		}
-		$behavior = \OpenLingua\Modules\Site_Settings::get();
+		$behavior = \SysOpenLang\Modules\Site_Settings::get();
 		$requested_status = $behavior['new_translation_status'];
 		$post_type_object = get_post_type_object( $source->post_type );
 		$publish_capability = $post_type_object && ! empty( $post_type_object->cap->publish_posts ) ? $post_type_object->cap->publish_posts : 'publish_posts';
@@ -119,17 +119,17 @@ final class Content {
 		if ( 'source' === $behavior['slug_mode'] ) { $new_post['post_name'] = $source->post_name; }
 		$new_id = wp_insert_post( $new_post );
 		if ( is_wp_error( $new_id ) ) { wp_die( esc_html( $new_id->get_error_message() ) ); }
-		\OpenLingua\Modules\Metadata::copy( $post_id, $new_id, $source->post_type );
+		\SysOpenLang\Modules\Metadata::copy( $post_id, $new_id, $source->post_type );
 		if ( empty( $behavior['copy_thumbnail'] ) ) { delete_post_thumbnail( $new_id ); }
 		if ( empty( $behavior['copy_template'] ) ) { delete_post_meta( $new_id, '_wp_page_template' ); }
-		if ( 'product' === $source->post_type ) { \OpenLingua\Modules\Commerce::initialize_translation( $post_id, $new_id ); }
+		if ( 'product' === $source->post_type ) { \SysOpenLang\Modules\Commerce::initialize_translation( $post_id, $new_id ); }
 		$term_sync = Taxonomies::synchronize_post_terms( $post_id, $new_id, $language );
 		if ( is_wp_error( $term_sync ) ) { wp_die( esc_html( $term_sync->get_error_message() ) ); }
 		Translations::assign( 'post', $new_id, $language, $group, $row ? $row->language : Languages::default_code() );
-		\OpenLingua\Modules\Workflow::mark_created( $new_id, $post_id );
+		\SysOpenLang\Modules\Workflow::mark_created( $new_id, $post_id );
 		if ( ! empty( $behavior['automatic_on_create'] ) ) {
-			$provider = \OpenLingua\Modules\Providers::active();
-			if ( $provider && $provider->is_configured() ) { \OpenLingua\Modules\Jobs::enqueue( $post_id, $new_id, $language, $provider->id() ); }
+			$provider = \SysOpenLang\Modules\Providers::active();
+			if ( $provider && $provider->is_configured() ) { \SysOpenLang\Modules\Jobs::enqueue( $post_id, $new_id, $language, $provider->id() ); }
 		}
 		wp_safe_redirect( Translation_Editor::url( $post_id, $new_id, $return_to ) ); exit;
 	}
@@ -178,7 +178,7 @@ final class Content {
 		$candidates = array(
 			isset( $_REQUEST['openlingua_language'] ) ? sanitize_key( wp_unslash( $_REQUEST['openlingua_language'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Public AJAX language hint, validated below.
 			isset( $_REQUEST['lang'] ) ? sanitize_key( wp_unslash( $_REQUEST['lang'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Public AJAX language hint, validated below.
-			isset( $_SERVER['HTTP_X_OPENLINGUA_LANGUAGE'] ) ? sanitize_key( wp_unslash( $_SERVER['HTTP_X_OPENLINGUA_LANGUAGE'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Public request header, validated below.
+			isset( $_SERVER['HTTP_X_SYSOPENLANG_LANGUAGE'] ) ? sanitize_key( wp_unslash( $_SERVER['HTTP_X_SYSOPENLANG_LANGUAGE'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Public request header, validated below.
 		);
 		foreach ( $candidates as $candidate ) {
 			if ( ! is_scalar( $candidate ) ) { continue; }
@@ -286,9 +286,9 @@ final class Content {
 			if ( $row && $code === $row->language ) {
 				$language = Languages::all()[ $code ] ?? array();
 				$name = $language['name'] ?? strtoupper( $code );
-				echo '<span class="openlingua-trashed-language"><span class="dashicons dashicons-trash" aria-hidden="true"></span>' . esc_html( $name ) . '<span class="screen-reader-text"> ' . esc_html__( 'trashed translation', 'openlingua' ) . '</span></span>';
+				echo '<span class="openlingua-trashed-language"><span class="dashicons dashicons-trash" aria-hidden="true"></span>' . esc_html( $name ) . '<span class="screen-reader-text"> ' . esc_html__( 'trashed translation', 'sysopenlang' ) . '</span></span>';
 			} elseif ( ! $row && $code === array_key_first( Languages::all() ) ) {
-				echo '<span class="openlingua-trashed-language openlingua-trashed-language--unknown">' . esc_html__( 'Language unavailable', 'openlingua' ) . '</span>';
+				echo '<span class="openlingua-trashed-language openlingua-trashed-language--unknown">' . esc_html__( 'Language unavailable', 'sysopenlang' ) . '</span>';
 			} else {
 				echo '&mdash;';
 			}
@@ -301,18 +301,18 @@ final class Content {
 			$translation_id = absint( $group[ $code ] );
 			$url   = self::restore_translation_url( $post_id, $translation_id );
 			/* translators: %s: language name. */
-			$label = sprintf( __( 'Restore %s translation from Trash', 'openlingua' ), $name );
+			$label = sprintf( __( 'Restore %s translation from Trash', 'sysopenlang' ), $name );
 			$icon  = 'dashicons-undo';
 		} elseif ( isset( $group[ $code ] ) ) {
 			$translation_id = absint( $group[ $code ] );
 			$url   = Translation_Editor::url( $post_id, $translation_id );
 			/* translators: %s: language name. */
-			$label = sprintf( __( 'Edit %s translation', 'openlingua' ), $name );
+			$label = sprintf( __( 'Edit %s translation', 'sysopenlang' ), $name );
 			$icon  = 'dashicons-edit';
 		} else {
 			$url = wp_nonce_url( add_query_arg( array( 'action' => 'openlingua_duplicate', 'post_id' => $post_id, 'language' => $code ), admin_url( 'admin-post.php' ) ), 'openlingua_duplicate_' . $post_id );
 			/* translators: %s: language name. */
-			$label = sprintf( __( 'Add %s translation', 'openlingua' ), $name );
+			$label = sprintf( __( 'Add %s translation', 'sysopenlang' ), $name );
 			$icon  = 'dashicons-plus-alt2';
 		}
 		if ( ! $url ) { return; }
@@ -320,13 +320,13 @@ final class Content {
 		if ( isset( $translation_id ) && 'trash' !== get_post_status( $translation_id ) ) {
 			$view_url = 'publish' === get_post_status( $translation_id ) ? get_permalink( $translation_id ) : get_preview_post_link( $translation_id );
 			/* translators: %s: language name. */
-			$view_label = sprintf( __( 'View %s translation', 'openlingua' ), $name );
+			$view_label = sprintf( __( 'View %s translation', 'sysopenlang' ), $name );
 			if ( $view_url ) { echo '<a class="openlingua-translation-action" href="' . esc_url( $view_url ) . '" target="_blank" rel="noopener noreferrer" title="' . esc_attr( $view_label ) . '" aria-label="' . esc_attr( $view_label ) . '"><span class="dashicons dashicons-visibility" aria-hidden="true"></span></a>'; }
 			if ( current_user_can( 'delete_post', $translation_id ) ) {
 				/* translators: %s: language name. */
-				$delete_label = sprintf( __( 'Move %s translation to Trash', 'openlingua' ), $name );
+				$delete_label = sprintf( __( 'Move %s translation to Trash', 'sysopenlang' ), $name );
 				/* translators: %s: language name. */
-				$confirmation = sprintf( __( 'Move the %s translation to Trash? The original content will not be deleted.', 'openlingua' ), $name );
+				$confirmation = sprintf( __( 'Move the %s translation to Trash? The original content will not be deleted.', 'sysopenlang' ), $name );
 				echo '<a class="openlingua-translation-action openlingua-translation-action--delete" href="' . esc_url( self::delete_translation_url( $post_id, $translation_id ) ) . '" data-openlingua-confirm="' . esc_attr( $confirmation ) . '" title="' . esc_attr( $delete_label ) . '" aria-label="' . esc_attr( $delete_label ) . '"><span class="dashicons dashicons-trash" aria-hidden="true"></span></a>';
 			}
 		}
@@ -360,14 +360,14 @@ final class Content {
 		$translation = get_post( $translation_id );
 		$group       = $source ? Translations::group( 'post', $source_id ) : array();
 		if ( ! $source || ! $translation || $source_id === $translation_id || ! in_array( $translation_id, array_map( 'absint', $group ), true ) ) {
-			wp_die( esc_html__( 'These posts are not linked translations.', 'openlingua' ) );
+			wp_die( esc_html__( 'These posts are not linked translations.', 'sysopenlang' ) );
 		}
 		if ( ! current_user_can( 'delete_post', $translation_id ) ) {
-			wp_die( esc_html__( 'You cannot delete this translation.', 'openlingua' ) );
+			wp_die( esc_html__( 'You cannot delete this translation.', 'sysopenlang' ) );
 		}
 		delete_post_meta( $translation_id, '_et_theme_builder_marked_as_unused' );
 		if ( ! wp_trash_post( $translation_id ) ) {
-			wp_die( esc_html__( 'The translation could not be moved to Trash.', 'openlingua' ) );
+			wp_die( esc_html__( 'The translation could not be moved to Trash.', 'sysopenlang' ) );
 		}
 
 		$fallback = add_query_arg( 'post_type', $source->post_type, admin_url( 'edit.php' ) );
@@ -383,10 +383,10 @@ final class Content {
 		$source = get_post( $source_id );
 		$group  = $source ? Translations::group( 'post', $source_id ) : array();
 		if ( ! $source || 'trash' !== get_post_status( $translation_id ) || ! in_array( $translation_id, array_map( 'absint', $group ), true ) ) {
-			wp_die( esc_html__( 'These posts are not linked translations.', 'openlingua' ) );
+			wp_die( esc_html__( 'These posts are not linked translations.', 'sysopenlang' ) );
 		}
 		if ( ! current_user_can( 'delete_post', $translation_id ) || ! wp_untrash_post( $translation_id ) ) {
-			wp_die( esc_html__( 'The translation could not be restored.', 'openlingua' ) );
+			wp_die( esc_html__( 'The translation could not be restored.', 'sysopenlang' ) );
 		}
 		wp_safe_redirect( add_query_arg( 'openlingua_translation_restored', '1', add_query_arg( 'post_type', $source->post_type, admin_url( 'edit.php' ) ) ) );
 		exit;

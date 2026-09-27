@@ -1,12 +1,12 @@
 <?php
-namespace OpenLingua;
+namespace SysOpenLang;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Discovers and translates visible strings in rendered shortcode output.
  *
- * Shortcode authors do not need to depend on OpenLingua. The original callback
+ * Shortcode authors do not need to depend on SysOpenLang. The original callback
  * renders normally and this class processes its final HTML through WordPress'
  * do_shortcode_tag filter.
  */
@@ -38,14 +38,14 @@ final class Shortcode_Content {
 	public static function assets() {
 		if ( is_admin() ) { return; }
 		$preloaded = self::preloaded_translations( Languages::current() );
-		wp_enqueue_script( 'openlingua-dynamic-shortcodes', plugins_url( 'assets/dynamic-shortcodes.js', OPENLINGUA_FILE ), array(), OPENLINGUA_VERSION, false );
-		wp_localize_script( 'openlingua-dynamic-shortcodes', 'OpenLinguaShortcodes', array(
-			'endpoint'       => esc_url_raw( rest_url( 'openlingua/v1/shortcode-strings' ) ),
+		wp_enqueue_script( 'openlingua-dynamic-shortcodes', plugins_url( 'assets/dynamic-shortcodes.js', SYSOPENLANG_FILE ), array(), SYSOPENLANG_VERSION, false );
+		wp_localize_script( 'openlingua-dynamic-shortcodes', 'SysOpenLangShortcodes', array(
+			'endpoint'       => esc_url_raw( rest_url( 'sysopenlang/v1/shortcode-strings' ) ),
 			'nonce'          => is_user_logged_in() ? wp_create_nonce( 'wp_rest' ) : '',
 			'language'       => Languages::current(),
 			'sourceLanguage' => Languages::default_code(),
 			'preloaded'      => $preloaded,
-			'cacheKey'       => 'openlingua-shortcodes-' . OPENLINGUA_VERSION . '-' . Languages::current(),
+			'cacheKey'       => 'openlingua-shortcodes-' . SYSOPENLANG_VERSION . '-' . Languages::current(),
 		) );
 	}
 
@@ -67,7 +67,7 @@ final class Shortcode_Content {
 	}
 
 	public static function rest_routes() {
-		register_rest_route( 'openlingua/v1', '/shortcode-strings', array(
+		register_rest_route( 'sysopenlang/v1', '/shortcode-strings', array(
 			'methods'             => 'POST',
 			'callback'            => array( __CLASS__, 'dynamic_strings' ),
 			'permission_callback' => '__return_true',
@@ -84,7 +84,7 @@ final class Shortcode_Content {
 		$language = sanitize_key( (string) $request->get_param( 'language' ) );
 		$entries  = $request->get_param( 'entries' );
 		if ( ! Languages::is_valid( $language ) || ! is_array( $entries ) ) {
-			return new \WP_Error( 'openlingua_invalid_shortcode_strings', __( 'Invalid shortcode strings request.', 'openlingua' ), array( 'status' => 400 ) );
+			return new \WP_Error( 'openlingua_invalid_shortcode_strings', __( 'Invalid shortcode strings request.', 'sysopenlang' ), array( 'status' => 400 ) );
 		}
 
 		$entries = array_slice( $entries, 0, 50 );
@@ -127,7 +127,7 @@ final class Shortcode_Content {
 		// list. Native Divi modules are handled by Divi_Content, which prevents
 		// their container output from duplicating fields in this generic path.
 		global $shortcode_tags;
-		$excluded = array( 'audio', 'caption', 'embed', 'gallery', 'playlist', 'video', 'wp_caption', 'openlingua_switcher' );
+		$excluded = array( 'audio', 'caption', 'embed', 'gallery', 'playlist', 'video', 'wp_caption', 'sysopenlang_switcher', 'openlingua_switcher' );
 		$supported = ! in_array( $tag, $excluded, true ) && 0 !== strpos( $tag, 'et_pb_' ) && isset( $shortcode_tags[ $tag ] );
 		return (bool) apply_filters( 'openlingua_translate_shortcode_output', $supported, $tag );
 	}

@@ -1,8 +1,8 @@
 <?php
-namespace OpenLingua\Modules;
+namespace SysOpenLang\Modules;
 
-use OpenLingua\Contracts\Module;
-use OpenLingua\Translations;
+use SysOpenLang\Contracts\Module;
+use SysOpenLang\Translations;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -136,7 +136,7 @@ final class Commerce implements Module {
 			if ( '' === trim( $source_description ) && '' === trim( $target_description ) ) { continue; }
 			$fields[] = array(
 				'id' => 'wc_variation_' . absint( $source_variation_id ) . '_description',
-				'label' => sprintf( /* translators: %s: variation name. */ __( 'Variation description — %s', 'openlingua' ), $source_variation->get_name() ),
+				'label' => sprintf( /* translators: %s: variation name. */ __( 'Variation description — %s', 'sysopenlang' ), $source_variation->get_name() ),
 				'source' => $source_description,
 				'target' => $target_description,
 				'target_variation_id' => absint( $target_variation->get_id() ),

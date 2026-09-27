@@ -1,5 +1,5 @@
 <?php
-namespace OpenLingua;
+namespace SysOpenLang;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -7,7 +7,7 @@ final class Plugin {
 	public static function boot() {
 		Content_Extractors::hooks();
 		Database::maybe_upgrade();
-		if ( is_multisite() ) { add_action( 'wp_initialize_site', array( 'OpenLingua\\Database', 'install_new_site' ), 20, 1 ); }
+		if ( is_multisite() ) { add_action( 'wp_initialize_site', array( 'SysOpenLang\\Database', 'install_new_site' ), 20, 1 ); }
 		Content::hooks();
 		Gutenberg_Content::hooks();
 		Global_Content::hooks();
@@ -23,25 +23,26 @@ final class Plugin {
 		GraphQL::hooks();
 		Admin::hooks();
 		Module_Registry::boot( apply_filters( 'openlingua_modules', array(
-			\OpenLingua\Modules\Language_Settings::class,
-			\OpenLingua\Modules\Site_Settings::class,
-			\OpenLingua\Modules\Workflow::class,
-			\OpenLingua\Modules\Menus::class,
-			\OpenLingua\Modules\Media::class,
-			\OpenLingua\Modules\Metadata::class,
-			\OpenLingua\Modules\Commerce::class,
-			\OpenLingua\Modules\Providers::class,
-			\OpenLingua\Modules\OpenAI_Provider::class,
-			\OpenLingua\Modules\Anthropic_Provider::class,
-			\OpenLingua\Modules\Gemini_Provider::class,
-			\OpenLingua\Modules\Google_Translate_Provider::class,
-			\OpenLingua\Modules\Jobs::class,
-			\OpenLingua\Modules\String_Discovery::class,
-			\OpenLingua\Modules\Portability::class,
-			\OpenLingua\Modules\Diagnostics::class,
-			\OpenLingua\Modules\Privacy::class,
-			\OpenLingua\Modules\CLI::class,
+			\SysOpenLang\Modules\Language_Settings::class,
+			\SysOpenLang\Modules\Site_Settings::class,
+			\SysOpenLang\Modules\Workflow::class,
+			\SysOpenLang\Modules\Menus::class,
+			\SysOpenLang\Modules\Media::class,
+			\SysOpenLang\Modules\Metadata::class,
+			\SysOpenLang\Modules\Commerce::class,
+			\SysOpenLang\Modules\Providers::class,
+			\SysOpenLang\Modules\OpenAI_Provider::class,
+			\SysOpenLang\Modules\Anthropic_Provider::class,
+			\SysOpenLang\Modules\Gemini_Provider::class,
+			\SysOpenLang\Modules\Google_Translate_Provider::class,
+			\SysOpenLang\Modules\Jobs::class,
+			\SysOpenLang\Modules\String_Discovery::class,
+			\SysOpenLang\Modules\Portability::class,
+			\SysOpenLang\Modules\Diagnostics::class,
+			\SysOpenLang\Modules\Privacy::class,
+			\SysOpenLang\Modules\CLI::class,
 		) ) );
+		add_shortcode( 'sysopenlang_switcher', array( __CLASS__, 'switcher' ) );
 		add_shortcode( 'openlingua_switcher', array( __CLASS__, 'switcher' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'switcher_assets' ) );
 		add_filter( 'locale', array( __CLASS__, 'locale' ) );
@@ -49,15 +50,15 @@ final class Plugin {
 	}
 
 	public static function switcher_assets() {
-		wp_enqueue_style( 'openlingua-switcher', plugins_url( 'assets/switcher.css', OPENLINGUA_FILE ), array(), OPENLINGUA_VERSION );
-		wp_enqueue_script( 'openlingua-switcher', plugins_url( 'assets/switcher.js', OPENLINGUA_FILE ), array(), OPENLINGUA_VERSION, true );
+		wp_enqueue_style( 'openlingua-switcher', plugins_url( 'assets/switcher.css', SYSOPENLANG_FILE ), array(), SYSOPENLANG_VERSION );
+		wp_enqueue_script( 'openlingua-switcher', plugins_url( 'assets/switcher.js', SYSOPENLANG_FILE ), array(), SYSOPENLANG_VERSION, true );
 	}
 
 	public static function switcher( $atts = array() ) {
-		$atts = shortcode_atts( array( 'context' => 'standalone' ), is_array( $atts ) ? $atts : array(), 'openlingua_switcher' );
+		$atts = shortcode_atts( array( 'context' => 'standalone' ), is_array( $atts ) ? $atts : array(), 'sysopenlang_switcher' );
 		$menu_context = 'menu' === $atts['context'];
 		$context    = self::switcher_content_context();
-		$settings   = \OpenLingua\Modules\Language_Settings::get()['switcher'];
+		$settings   = \SysOpenLang\Modules\Language_Settings::get()['switcher'];
 		$items      = '';
 		foreach ( Languages::public_all() as $code => $language ) {
 			$is_current = Languages::current() === $code;
@@ -70,17 +71,17 @@ final class Plugin {
 		if ( '' === $items ) {
 			$current_code = Languages::current();
 			$current = Languages::all()[ $current_code ] ?? array( 'name' => strtoupper( $current_code ) );
-			$indicator = '<span class="openlingua-switcher openlingua-switcher--single" aria-label="' . esc_attr__( 'Current language', 'openlingua' ) . '">' . self::switcher_language_label( $current_code, $current, $settings ) . '</span>';
-			return $menu_context ? '<li class="openlingua-switcher-menu-item menu-item">' . $indicator . '</li>' : '<nav aria-label="' . esc_attr__( 'Languages', 'openlingua' ) . '">' . $indicator . '</nav>';
+			$indicator = '<span class="openlingua-switcher openlingua-switcher--single" aria-label="' . esc_attr__( 'Current language', 'sysopenlang' ) . '">' . self::switcher_language_label( $current_code, $current, $settings ) . '</span>';
+			return $menu_context ? '<li class="openlingua-switcher-menu-item menu-item">' . $indicator . '</li>' : '<nav aria-label="' . esc_attr__( 'Languages', 'sysopenlang' ) . '">' . $indicator . '</nav>';
 		}
 		if ( ! empty( $settings['dropdown'] ) ) {
 			$current_code = Languages::current();
 			$current = Languages::all()[ $current_code ] ?? array( 'name' => strtoupper( $current_code ) );
 			$dropdown = '<details class="openlingua-switcher openlingua-switcher--dropdown"><summary>' . self::switcher_language_label( $current_code, $current, $settings ) . '</summary><ul>' . $items . '</ul></details>';
-			return $menu_context ? '<li class="openlingua-switcher-menu-item menu-item">' . $dropdown . '</li>' : '<nav aria-label="' . esc_attr__( 'Languages', 'openlingua' ) . '">' . $dropdown . '</nav>';
+			return $menu_context ? '<li class="openlingua-switcher-menu-item menu-item">' . $dropdown . '</li>' : '<nav aria-label="' . esc_attr__( 'Languages', 'sysopenlang' ) . '">' . $dropdown . '</nav>';
 		}
 		if ( $menu_context ) { return $items; }
-		return '<nav class="openlingua-switcher" aria-label="' . esc_attr__( 'Languages', 'openlingua' ) . '"><ul>' . $items . '</ul></nav>';
+		return '<nav class="openlingua-switcher" aria-label="' . esc_attr__( 'Languages', 'sysopenlang' ) . '"><ul>' . $items . '</ul></nav>';
 	}
 
 	private static function switcher_content_context() {
@@ -95,7 +96,7 @@ final class Plugin {
 		if ( empty( $context['type'] ) ) { return home_url( '/' ); }
 		$target_id = Languages::current() === $language ? absint( $context['id'] ?? 0 ) : absint( $context['group'][ $language ] ?? 0 );
 		if ( ! $target_id ) {
-			$behavior = class_exists( '\OpenLingua\Modules\Site_Settings' ) ? \OpenLingua\Modules\Site_Settings::get() : array( 'missing_translation' => 'hide' );
+			$behavior = class_exists( '\SysOpenLang\Modules\Site_Settings' ) ? \SysOpenLang\Modules\Site_Settings::get() : array( 'missing_translation' => 'hide' );
 			if ( 'home' === $behavior['missing_translation'] ) { return home_url( '/' ); }
 			if ( 'fallback' === $behavior['missing_translation'] ) {
 				foreach ( Languages::fallback_chain( $language ) as $fallback ) { if ( ! empty( $context['group'][ $fallback ] ) ) { $target_id = absint( $context['group'][ $fallback ] ); break; } }
@@ -134,7 +135,7 @@ final class Plugin {
 		$languages = Languages::all();
 		$current   = Languages::current();
 		if ( is_admin() ) {
-			$admin = \OpenLingua\Modules\Language_Settings::get()['admin_language'];
+			$admin = \SysOpenLang\Modules\Language_Settings::get()['admin_language'];
 			if ( 'user' === $admin ) { return get_user_option( 'locale' ) ?: $locale; }
 			$current = 'site-default' === $admin ? Languages::default_code() : $admin;
 		}
@@ -169,13 +170,13 @@ function translated_term_id( $term_id, $language ) {
 }
 
 function register_provider( $provider ) {
-	return \OpenLingua\Modules\Providers::register( $provider );
+	return \SysOpenLang\Modules\Providers::register( $provider );
 }
 
 function enqueue_translation_job( $source_id, $target_id, $target_language, $provider_id ) {
-	return \OpenLingua\Modules\Jobs::enqueue( $source_id, $target_id, $target_language, $provider_id );
+	return \SysOpenLang\Modules\Jobs::enqueue( $source_id, $target_id, $target_language, $provider_id );
 }
 
 function set_menu_translation( $location, $language, $menu_id ) {
-	return \OpenLingua\Modules\Menus::set( $location, $language, $menu_id );
+	return \SysOpenLang\Modules\Menus::set( $location, $language, $menu_id );
 }

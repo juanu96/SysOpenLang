@@ -1,7 +1,7 @@
 <?php
-namespace OpenLingua;
+namespace SysOpenLang;
 
-use OpenLingua\Contracts\Content_Extractor;
+use SysOpenLang\Contracts\Content_Extractor;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -10,7 +10,7 @@ final class Elementor_Content implements Content_Extractor {
 	const DATA_META = '_elementor_data';
 
 	public function id() { return 'elementor'; }
-	public function label() { return __( 'Elementor content', 'openlingua' ); }
+	public function label() { return __( 'Elementor content', 'sysopenlang' ); }
 
 	public function supports( $post ) {
 		return '' !== trim( (string) get_post_meta( $post->ID, self::DATA_META, true ) );

@@ -88,7 +88,7 @@ namespace {
 	$wpdb = new Taxonomy_Sync_Test_DB();
 }
 
-namespace OpenLingua {
+namespace SysOpenLang {
 	final class Languages {
 		public static function is_valid( $language ) { return in_array( $language, array( 'en', 'de', 'es' ), true ); }
 		public static function default_code() { return 'en'; }
@@ -116,41 +116,41 @@ namespace OpenLingua {
 
 namespace {
 	require dirname( __DIR__ ) . '/src/class-taxonomies.php';
-	foreach ( array( 1, 2, 3, 4, 5, 6 ) as $id ) { \OpenLingua\Translations::assign( 'term', $id, 'en', 'group-' . $id ); }
-	\OpenLingua\Translations::assign( 'term', 205, 'es', 'group-5', 'en' );
-	\OpenLingua\Translations::assign( 'term', 206, 'es', 'group-206', 'en' );
-	\OpenLingua\Translations::assign( 'post', 13, 'en', 'post-group-13' );
-	\OpenLingua\Translations::assign( 'post', 14, 'es', 'post-group-13', 'en' );
+	foreach ( array( 1, 2, 3, 4, 5, 6 ) as $id ) { \SysOpenLang\Translations::assign( 'term', $id, 'en', 'group-' . $id ); }
+	\SysOpenLang\Translations::assign( 'term', 205, 'es', 'group-5', 'en' );
+	\SysOpenLang\Translations::assign( 'term', 206, 'es', 'group-206', 'en' );
+	\SysOpenLang\Translations::assign( 'post', 13, 'en', 'post-group-13' );
+	\SysOpenLang\Translations::assign( 'post', 14, 'es', 'post-group-13', 'en' );
 	function taxonomy_sync_assert( $condition, $message ) { if ( ! $condition ) { fwrite( STDERR, "FAIL: {$message}\n" ); exit( 1 ); } echo "PASS: {$message}\n"; }
 
-	$munich_es = \OpenLingua\Taxonomies::ensure_translation( 3, 'es' );
+	$munich_es = \SysOpenLang\Taxonomies::ensure_translation( 3, 'es' );
 	taxonomy_sync_assert( 103 === $munich_es, 'creates a translated term for a post assignment instead of reusing the source term ID' );
 	taxonomy_sync_assert( 101 === $GLOBALS['openlingua_terms'][102]->parent && 102 === $GLOBALS['openlingua_terms'][103]->parent, 'creates the translated geographic parent hierarchy in the target language' );
 	taxonomy_sync_assert( 'Munich' === $GLOBALS['openlingua_terms'][103]->name, 'preserves a geographic proper name until an editor supplies a localized name' );
 	taxonomy_sync_assert( array( 'DE' ) === $GLOBALS['openlingua_term_meta'][103]['country_code'], 'copies shared geographic metadata to the created term translation' );
 
-	$managua_es = \OpenLingua\Taxonomies::ensure_translation( 4, 'es' );
-	taxonomy_sync_assert( 'Managua' === $GLOBALS['openlingua_terms'][ $managua_es ]->name && 'group-4' === \OpenLingua\Translations::row( 'term', $managua_es )->group_uuid, 'keeps identical location names as linked translations of one entity' );
+	$managua_es = \SysOpenLang\Taxonomies::ensure_translation( 4, 'es' );
+	taxonomy_sync_assert( 'Managua' === $GLOBALS['openlingua_terms'][ $managua_es ]->name && 'group-4' === \SysOpenLang\Translations::row( 'term', $managua_es )->group_uuid, 'keeps identical location names as linked translations of one entity' );
 
-	$leon_es = \OpenLingua\Taxonomies::ensure_translation( 5, 'es' );
+	$leon_es = \SysOpenLang\Taxonomies::ensure_translation( 5, 'es' );
 	taxonomy_sync_assert( 205 === $leon_es && 101 === $GLOBALS['openlingua_terms'][205]->parent, 'repairs an existing translated child to use its translated parent' );
 
-	$adopted = \OpenLingua\Taxonomies::link_existing_translation( 6, 206, 'es' );
-	taxonomy_sync_assert( true === $adopted && 206 === \OpenLingua\Translations::translated_id( 'term', 6, 'es' ), 'links an independently created term to its explicit original without guessing from its name or slug' );
-	$sync_term_relationships = new ReflectionMethod( \OpenLingua\Taxonomies::class, 'synchronize_term_translation_relationships' );
+	$adopted = \SysOpenLang\Taxonomies::link_existing_translation( 6, 206, 'es' );
+	taxonomy_sync_assert( true === $adopted && 206 === \SysOpenLang\Translations::translated_id( 'term', 6, 'es' ), 'links an independently created term to its explicit original without guessing from its name or slug' );
+	$sync_term_relationships = new ReflectionMethod( \SysOpenLang\Taxonomies::class, 'synchronize_term_translation_relationships' );
 	$sync_term_relationships->setAccessible( true );
 	$sync_term_relationships->invoke( null, 6, 206, 'es' );
 	taxonomy_sync_assert( array( 206 ) === $GLOBALS['openlingua_object_terms'][14]['location'], 'syncs existing translated posts when a term translation is saved later' );
 
-	$orphaned_parent_es = \OpenLingua\Taxonomies::ensure_translation( 7, 'es' );
+	$orphaned_parent_es = \SysOpenLang\Taxonomies::ensure_translation( 7, 'es' );
 	taxonomy_sync_assert( $orphaned_parent_es && 0 === $GLOBALS['openlingua_terms'][ $orphaned_parent_es ]->parent, 'keeps a valid term translatable when its historical parent was deleted' );
 
-	$sync = \OpenLingua\Taxonomies::synchronize_post_terms( 11, 12, 'es' );
+	$sync = \SysOpenLang\Taxonomies::synchronize_post_terms( 11, 12, 'es' );
 	taxonomy_sync_assert( true === $sync && array( 103, 104 ) === $GLOBALS['openlingua_object_terms'][12]['location'], 'replaces legacy source-language relationships on a translated post with matching target-language terms' );
 
 	$GLOBALS['openlingua_object_terms'][11]['location'] = array( 3, 999 );
-	$sync_with_orphan = \OpenLingua\Taxonomies::synchronize_post_terms( 11, 12, 'es' );
+	$sync_with_orphan = \SysOpenLang\Taxonomies::synchronize_post_terms( 11, 12, 'es' );
 	taxonomy_sync_assert( true === $sync_with_orphan && array( 103 ) === $GLOBALS['openlingua_object_terms'][12]['location'], 'ignores an orphaned source relationship while synchronizing valid terms' );
 
-	echo "All OpenLingua taxonomy synchronization tests passed.\n";
+	echo "All SysOpenLang taxonomy synchronization tests passed.\n";
 }

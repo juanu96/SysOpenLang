@@ -1,11 +1,11 @@
 <?php
-namespace OpenLingua\Modules;
+namespace SysOpenLang\Modules;
 
-use OpenLingua\Admin;
-use OpenLingua\Contracts\Module;
-use OpenLingua\Database;
-use OpenLingua\Languages;
-use OpenLingua\Translations;
+use SysOpenLang\Admin;
+use SysOpenLang\Contracts\Module;
+use SysOpenLang\Database;
+use SysOpenLang\Languages;
+use SysOpenLang\Translations;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -56,14 +56,14 @@ final class Media implements Module {
 		foreach ( $defaults as $key => $fallback ) {
 			$fields[ 'openlingua_' . $key ] = array(
 				/* translators: 1: media field name, 2: language name. */
-				'label' => sprintf( __( '%1$s (%2$s)', 'openlingua' ), ucfirst( $key ), $language_name ),
+				'label' => sprintf( __( '%1$s (%2$s)', 'sysopenlang' ), ucfirst( $key ), $language_name ),
 				'input' => in_array( $key, array( 'caption', 'description' ), true ) ? 'textarea' : 'text',
 				'value' => self::translated_text( $attachment->ID, $key, $language, $fallback ),
-				'helps' => __( 'Stored for this language without duplicating the media file.', 'openlingua' ),
+				'helps' => __( 'Stored for this language without duplicating the media file.', 'sysopenlang' ),
 			);
 		}
 		if ( self::MODE_SEPARATE === self::mode() ) {
-			$fields['openlingua_shared'] = array( 'label' => __( 'Language availability', 'openlingua' ), 'input' => 'html', 'html' => '<label><input type="checkbox" name="attachments[' . absint( $attachment->ID ) . '][openlingua_shared]" value="1" ' . checked( (bool) get_post_meta( $attachment->ID, self::SHARED_META, true ), true, false ) . '> ' . esc_html__( 'Available in every language', 'openlingua' ) . '</label>', 'helps' => __( 'Keep this file visible in all language-specific media libraries.', 'openlingua' ) );
+			$fields['openlingua_shared'] = array( 'label' => __( 'Language availability', 'sysopenlang' ), 'input' => 'html', 'html' => '<label><input type="checkbox" name="attachments[' . absint( $attachment->ID ) . '][openlingua_shared]" value="1" ' . checked( (bool) get_post_meta( $attachment->ID, self::SHARED_META, true ), true, false ) . '> ' . esc_html__( 'Available in every language', 'sysopenlang' ) . '</label>', 'helps' => __( 'Keep this file visible in all language-specific media libraries.', 'sysopenlang' ) );
 		}
 		return $fields;
 	}

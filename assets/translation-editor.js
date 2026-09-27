@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	var bar = document.querySelector('[data-openlingua-progress-bar]');
 	var search = document.querySelector('.openlingua-editor__search input');
 	var richSegments = Array.prototype.slice.call(document.querySelectorAll('[data-openlingua-rich-segment]'));
-	var memory = window.OpenLinguaTranslationMemory || { fields: {}, label: '' };
+	var memory = window.SysOpenLangTranslationMemory || { fields: {}, label: '' };
 	var memoryGroups = {};
 	var activeFilter = 'all';
 	var segments = Array.prototype.slice.call(document.querySelectorAll('[data-openlingua-segment]'));

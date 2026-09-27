@@ -22,7 +22,7 @@ namespace {
 	function do_action() {}
 }
 
-namespace OpenLingua {
+namespace SysOpenLang {
 	final class SEO_Test_DB {
 		public $prefix = 'wp_';
 		public function prepare( $query ) { return $query; }

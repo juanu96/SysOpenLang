@@ -4,7 +4,7 @@ defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 // Data is preserved unless removal is explicitly configured and confirmed, or forced by a constant.
 $openlingua_settings = (array) get_option( 'openlingua_site_settings', array() );
 $openlingua_remove_by_setting = 'remove' === ( $openlingua_settings['uninstall_mode'] ?? 'preserve' ) && get_option( 'openlingua_remove_data_confirmed' );
-if ( ( ! defined( 'OPENLINGUA_REMOVE_DATA' ) || ! OPENLINGUA_REMOVE_DATA ) && ! $openlingua_remove_by_setting ) { return; }
+if ( ( ! defined( 'SYSOPENLANG_REMOVE_DATA' ) || ! SYSOPENLANG_REMOVE_DATA ) && ! $openlingua_remove_by_setting ) { return; }
 global $wpdb;
 
 $openlingua_remove_site_data = static function () use ( $wpdb ) {

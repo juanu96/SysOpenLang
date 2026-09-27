@@ -13,14 +13,14 @@ namespace {
 	function is_tag() { return false; }
 	function get_queried_object() { return (object) array( 'term_id' => 141, 'term_taxonomy_id' => 141, 'taxonomy' => 'state_listing' ); }
 
-	final class OpenLingua_Tax_Archive_Query {
+	final class SysOpenLang_Tax_Archive_Query {
 		private $vars;
 		public function __construct( $vars = array() ) { $this->vars = $vars; }
 		public function get( $key ) { return $this->vars[ $key ] ?? ''; }
 		public function is_main_query() { return true; }
 	}
 
-	final class OpenLingua_Tax_Archive_DB {
+	final class SysOpenLang_Tax_Archive_DB {
 		public $posts = 'wp_posts';
 		public $term_taxonomy = 'wp_term_taxonomy';
 		public $term_relationships = 'wp_term_relationships';
@@ -35,10 +35,10 @@ namespace {
 			return false !== strpos( $query, 'term_id = 80' ) && false !== strpos( $query, "taxonomy = 'state_listing'" ) ? 80 : 0;
 		}
 	}
-	$wpdb = new OpenLingua_Tax_Archive_DB();
+	$wpdb = new SysOpenLang_Tax_Archive_DB();
 }
 
-namespace OpenLingua {
+namespace SysOpenLang {
 	final class Languages {
 		public static function current() { return 'es'; }
 		public static function default_code() { return 'en'; }
@@ -59,17 +59,17 @@ namespace OpenLingua {
 
 namespace {
 	require dirname( __DIR__ ) . '/src/class-content.php';
-	$clauses = \OpenLingua\Content::filter_frontend_posts(
+	$clauses = \SysOpenLang\Content::filter_frontend_posts(
 		array(
 			'where'  => ' WHERE 1=1 AND wp_term_relationships.term_taxonomy_id IN (141)',
 			'orderby'=> '',
 		),
-		new OpenLingua_Tax_Archive_Query()
+		new SysOpenLang_Tax_Archive_Query()
 	);
 	if ( false === strpos( $clauses['where'], 'ol_source_rel.term_taxonomy_id = 80' ) || false === strpos( $clauses['where'], "ol_source.language = 'en'" ) || false === strpos( $clauses['where'], "ol_current.language = 'es'" ) ) {
 		fwrite( STDERR, "FAIL: translated taxonomy archive does not include source-language post relationships.\n" . $clauses['where'] . "\n" );
 		exit( 1 );
 	}
 	echo "PASS: translated taxonomy archive includes posts whose source belongs to the original term.\n";
-	echo "All OpenLingua taxonomy archive post tests passed.\n";
+	echo "All SysOpenLang taxonomy archive post tests passed.\n";
 }

@@ -11,7 +11,7 @@ namespace {
 	function get_post_type( $id ) { return 202 === (int) $id ? 'et_body_layout' : 'post'; }
 }
 
-namespace OpenLingua {
+namespace SysOpenLang {
 	final class Languages {
 		public static $current = 'es';
 		public static function current() { return self::$current; }
@@ -62,5 +62,5 @@ namespace OpenLingua {
 	Languages::$current = 'en';
 	divi_tb_assert( 101 === Divi_Theme_Builder::translate_template_layouts( $layouts )['et_body_layout']['id'], 'keeps the original layout in the default language' );
 
-	echo "All OpenLingua Divi Theme Builder tests passed.\n";
+	echo "All SysOpenLang Divi Theme Builder tests passed.\n";
 }

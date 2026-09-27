@@ -15,7 +15,7 @@ namespace {
 	}
 }
 
-namespace OpenLingua {
+namespace SysOpenLang {
 	final class Translations {
 		public static function row( $type, $id ) {
 			return 'post' === $type && 10 === $id ? (object) array( 'language' => 'en', 'group_uuid' => 'existing-group' ) : null;
@@ -23,7 +23,7 @@ namespace OpenLingua {
 	}
 }
 
-namespace OpenLingua\Modules {
+namespace SysOpenLang\Modules {
 	require dirname( __DIR__ ) . '/src/contracts/interface-module.php';
 	require dirname( __DIR__ ) . '/src/modules/class-portability.php';
 	$data = array(

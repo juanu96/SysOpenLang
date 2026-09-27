@@ -1,5 +1,5 @@
 <?php
-namespace OpenLingua;
+namespace SysOpenLang;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -9,28 +9,28 @@ final class SEO {
 			'yoast' => array(
 				'name' => 'Yoast SEO',
 				'fields' => array(
-					'_yoast_wpseo_title' => __( 'SEO title', 'openlingua' ), '_yoast_wpseo_metadesc' => __( 'Meta description', 'openlingua' ),
-					'_yoast_wpseo_focuskw' => __( 'Focus keyphrase', 'openlingua' ), '_yoast_wpseo_opengraph-title' => __( 'Facebook title', 'openlingua' ),
-					'_yoast_wpseo_opengraph-description' => __( 'Facebook description', 'openlingua' ), '_yoast_wpseo_twitter-title' => __( 'X title', 'openlingua' ),
-					'_yoast_wpseo_twitter-description' => __( 'X description', 'openlingua' ),
+					'_yoast_wpseo_title' => __( 'SEO title', 'sysopenlang' ), '_yoast_wpseo_metadesc' => __( 'Meta description', 'sysopenlang' ),
+					'_yoast_wpseo_focuskw' => __( 'Focus keyphrase', 'sysopenlang' ), '_yoast_wpseo_opengraph-title' => __( 'Facebook title', 'sysopenlang' ),
+					'_yoast_wpseo_opengraph-description' => __( 'Facebook description', 'sysopenlang' ), '_yoast_wpseo_twitter-title' => __( 'X title', 'sysopenlang' ),
+					'_yoast_wpseo_twitter-description' => __( 'X description', 'sysopenlang' ),
 				),
 			),
 			'rank-math' => array(
 				'name' => 'Rank Math',
 				'fields' => array(
-					'rank_math_title' => __( 'SEO title', 'openlingua' ), 'rank_math_description' => __( 'Meta description', 'openlingua' ),
-					'rank_math_focus_keyword' => __( 'Focus keyword', 'openlingua' ), 'rank_math_facebook_title' => __( 'Facebook title', 'openlingua' ),
-					'rank_math_facebook_description' => __( 'Facebook description', 'openlingua' ), 'rank_math_twitter_title' => __( 'X title', 'openlingua' ),
-					'rank_math_twitter_description' => __( 'X description', 'openlingua' ),
+					'rank_math_title' => __( 'SEO title', 'sysopenlang' ), 'rank_math_description' => __( 'Meta description', 'sysopenlang' ),
+					'rank_math_focus_keyword' => __( 'Focus keyword', 'sysopenlang' ), 'rank_math_facebook_title' => __( 'Facebook title', 'sysopenlang' ),
+					'rank_math_facebook_description' => __( 'Facebook description', 'sysopenlang' ), 'rank_math_twitter_title' => __( 'X title', 'sysopenlang' ),
+					'rank_math_twitter_description' => __( 'X description', 'sysopenlang' ),
 				),
 			),
 			'seopress' => array(
 				'name' => 'SEOPress',
 				'fields' => array(
-					'_seopress_titles_title' => __( 'SEO title', 'openlingua' ), '_seopress_titles_desc' => __( 'Meta description', 'openlingua' ),
-					'_seopress_analysis_target_kw' => __( 'Target keywords', 'openlingua' ), '_seopress_social_fb_title' => __( 'Facebook title', 'openlingua' ),
-					'_seopress_social_fb_desc' => __( 'Facebook description', 'openlingua' ), '_seopress_social_twitter_title' => __( 'X title', 'openlingua' ),
-					'_seopress_social_twitter_desc' => __( 'X description', 'openlingua' ),
+					'_seopress_titles_title' => __( 'SEO title', 'sysopenlang' ), '_seopress_titles_desc' => __( 'Meta description', 'sysopenlang' ),
+					'_seopress_analysis_target_kw' => __( 'Target keywords', 'sysopenlang' ), '_seopress_social_fb_title' => __( 'Facebook title', 'sysopenlang' ),
+					'_seopress_social_fb_desc' => __( 'Facebook description', 'sysopenlang' ), '_seopress_social_twitter_title' => __( 'X title', 'sysopenlang' ),
+					'_seopress_social_twitter_desc' => __( 'X description', 'sysopenlang' ),
 				),
 			),
 		);
@@ -62,7 +62,7 @@ final class SEO {
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) !== $table ) { return array(); }
 		$source = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE post_id = %d', $table, $source_id ), ARRAY_A );
 		$target = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE post_id = %d', $table, $target_id ), ARRAY_A );
-		$labels = array( 'title' => __( 'SEO title', 'openlingua' ), 'description' => __( 'Meta description', 'openlingua' ), 'og_title' => __( 'Facebook title', 'openlingua' ), 'og_description' => __( 'Facebook description', 'openlingua' ), 'twitter_title' => __( 'X title', 'openlingua' ), 'twitter_description' => __( 'X description', 'openlingua' ) );
+		$labels = array( 'title' => __( 'SEO title', 'sysopenlang' ), 'description' => __( 'Meta description', 'sysopenlang' ), 'og_title' => __( 'Facebook title', 'sysopenlang' ), 'og_description' => __( 'Facebook description', 'sysopenlang' ), 'twitter_title' => __( 'X title', 'sysopenlang' ), 'twitter_description' => __( 'X description', 'sysopenlang' ) );
 		$fields = array();
 		foreach ( $labels as $key => $label ) {
 			$source_value = (string) ( $source[ $key ] ?? '' );
@@ -133,7 +133,7 @@ final class SEO {
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) !== $table ) { return array(); }
 		$source = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE term_id = %d', $table, $source_id ), ARRAY_A );
 		$target = $target_id ? $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE term_id = %d', $table, $target_id ), ARRAY_A ) : array();
-		$labels = array( 'title' => __( 'SEO title', 'openlingua' ), 'description' => __( 'Meta description', 'openlingua' ), 'og_title' => __( 'Facebook title', 'openlingua' ), 'og_description' => __( 'Facebook description', 'openlingua' ), 'twitter_title' => __( 'X title', 'openlingua' ), 'twitter_description' => __( 'X description', 'openlingua' ) );
+		$labels = array( 'title' => __( 'SEO title', 'sysopenlang' ), 'description' => __( 'Meta description', 'sysopenlang' ), 'og_title' => __( 'Facebook title', 'sysopenlang' ), 'og_description' => __( 'Facebook description', 'sysopenlang' ), 'twitter_title' => __( 'X title', 'sysopenlang' ), 'twitter_description' => __( 'X description', 'sysopenlang' ) );
 		$fields = array();
 		foreach ( $labels as $key => $label ) {
 			$source_value = (string) ( $source[ $key ] ?? '' );
@@ -173,8 +173,8 @@ final class SEO {
 
 	public static function translation_robots( $robots ) {
 		if ( ! is_singular() ) { return $robots; }
-		$settings = \OpenLingua\Modules\Site_Settings::get();
-		$status = get_post_meta( get_queried_object_id(), \OpenLingua\Modules\Workflow::STATUS_META, true );
+		$settings = \SysOpenLang\Modules\Site_Settings::get();
+		$status = get_post_meta( get_queried_object_id(), \SysOpenLang\Modules\Workflow::STATUS_META, true );
 		if ( ! empty( $settings['noindex_incomplete'] ) && in_array( $status, array( 'draft', 'in-progress', 'outdated' ), true ) ) { $robots['noindex'] = true; unset( $robots['index'] ); }
 		return $robots;
 	}
@@ -282,7 +282,7 @@ final class SEO {
 
 	public static function current_links() {
 		$links = array();
-		$public_languages = \OpenLingua\Languages::public_all();
+		$public_languages = \SysOpenLang\Languages::public_all();
 		if ( is_singular() ) {
 			foreach ( Translations::group( 'post', get_queried_object_id() ) as $language => $post_id ) {
 				if ( isset( $public_languages[ $language ] ) && 'publish' === get_post_status( $post_id ) ) { $links[ $language ] = get_permalink( $post_id ); }

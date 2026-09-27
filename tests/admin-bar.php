@@ -16,7 +16,7 @@ namespace {
 	function add_action() {}
 }
 
-namespace OpenLingua {
+namespace SysOpenLang {
 	final class Translations {
 		public static function row() {
 			global $openlingua_admin_bar_is_translation;

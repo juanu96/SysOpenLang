@@ -24,18 +24,18 @@ function site_settings_notice_assert( $condition, $message ) {
 }
 
 ob_start();
-\OpenLingua\Modules\Site_Settings::setup_notice();
+\SysOpenLang\Modules\Site_Settings::setup_notice();
 $dashboard_notice = ob_get_clean();
 site_settings_notice_assert( '' === $dashboard_notice, 'does not show setup notices on unrelated administration screens' );
 
 $site_settings_screen_id = 'openlingua_page_openlingua-settings';
 ob_start();
-\OpenLingua\Modules\Site_Settings::setup_notice();
+\SysOpenLang\Modules\Site_Settings::setup_notice();
 $openlingua_notice = ob_get_clean();
-site_settings_notice_assert( false !== strpos( $openlingua_notice, 'Finish setting up OpenLingua.' ), 'shows the setup notice on OpenLingua screens' );
+site_settings_notice_assert( false !== strpos( $openlingua_notice, 'Finish setting up SysOpenLang.' ), 'shows the setup notice on SysOpenLang screens' );
 
 $site_settings_screen_id = 'openlingua_page_openlingua-setup';
 ob_start();
-\OpenLingua\Modules\Site_Settings::setup_notice();
+\SysOpenLang\Modules\Site_Settings::setup_notice();
 $setup_notice = ob_get_clean();
 site_settings_notice_assert( '' === $setup_notice, 'does not duplicate the setup notice on its own setup screen' );

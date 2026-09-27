@@ -37,7 +37,7 @@ namespace {
 	}
 }
 
-namespace OpenLingua\Modules {
+namespace SysOpenLang\Modules {
 	class Metadata {
 		public static function policy( $key ) { return 'shared_id' === $key ? 'copy' : 'copy-once'; }
 	}
@@ -51,8 +51,8 @@ namespace {
 		echo "PASS: {$message}\n";
 	}
 
-	$segments = \OpenLingua\ACF_Content::extract( 1 );
-	$values = \OpenLingua\ACF_Content::values( 1 );
+	$segments = \SysOpenLang\ACF_Content::extract( 1 );
+	$values = \SysOpenLang\ACF_Content::values( 1 );
 	acf_assert( 5 === count( $segments ), 'extracts supported root and nested ACF fields' );
 	acf_assert( 'Original headline' === $values['acf_field_headline_value'], 'extracts a text field' );
 	acf_assert( '<p>Original <strong>body</strong></p>' === $values['acf_field_body_value'], 'extracts WYSIWYG HTML' );
@@ -60,7 +60,7 @@ namespace {
 	acf_assert( 'Second card' === $values['acf_field_cards_1_field_card_title'], 'extracts repeater rows independently' );
 	acf_assert( ! isset( $values['acf_field_shared_value'] ), 'does not expose fields configured as copy' );
 
-	\OpenLingua\ACF_Content::save( 1, 2, array(
+	\SysOpenLang\ACF_Content::save( 1, 2, array(
 		'acf_field_headline_value' => 'Titular traducido',
 		'acf_field_body_value' => '<p>Cuerpo <strong>traducido</strong><script>bad()</script></p>',
 		'acf_field_settings_field_tagline' => 'Descripción traducida',
@@ -74,15 +74,15 @@ namespace {
 	acf_assert( 'Primera tarjeta' === $acf_test_updates[2]['field_cards'][0]['field_card_title'], 'updates a repeater row' );
 	acf_assert( 'Old second' === $acf_test_updates[2]['field_cards'][1]['field_card_title'], 'preserves untouched repeater rows' );
 
-	$old_snapshot = \OpenLingua\ACF_Content::source_snapshot( 1 );
-	$acf_test_meta[2][\OpenLingua\ACF_Content::SOURCE_SNAPSHOT_META] = $old_snapshot;
+	$old_snapshot = \SysOpenLang\ACF_Content::source_snapshot( 1 );
+	$acf_test_meta[2][\SysOpenLang\ACF_Content::SOURCE_SNAPSHOT_META] = $old_snapshot;
 	$acf_source_cards = array( array( 'field_card_title' => 'Second card' ), array( 'field_card_title' => 'New card' ) );
-	$aligned = \OpenLingua\ACF_Content::aligned_values( 1, 2, $old_snapshot );
+	$aligned = \SysOpenLang\ACF_Content::aligned_values( 1, 2, $old_snapshot );
 	acf_assert( 'Old second' === $aligned['acf_field_cards_0_field_card_title'], 'keeps a repeater translation attached after deleting the preceding row' );
 	acf_assert( '' === $aligned['acf_field_cards_1_field_card_title'], 'leaves a newly inserted repeater row empty' );
-	\OpenLingua\ACF_Content::save( 1, 2, array( 'acf_field_cards_1_field_card_title' => 'Tarjeta nueva' ) );
+	\SysOpenLang\ACF_Content::save( 1, 2, array( 'acf_field_cards_1_field_card_title' => 'Tarjeta nueva' ) );
 	acf_assert( 'Old second' === $acf_test_updates[2]['field_cards'][0]['field_card_title'], 'rebuilds the repeater with the correctly aligned existing translation' );
 	acf_assert( 'Tarjeta nueva' === $acf_test_updates[2]['field_cards'][1]['field_card_title'] && 2 === count( $acf_test_updates[2]['field_cards'] ), 'adds the new translated row and removes deleted source rows' );
 
-	echo "All OpenLingua ACF tests passed.\n";
+	echo "All SysOpenLang ACF tests passed.\n";
 }

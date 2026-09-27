@@ -1,5 +1,5 @@
 <?php
-namespace OpenLingua;
+namespace SysOpenLang;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -234,7 +234,7 @@ final class Gutenberg_Content {
 		if ( 'core/table' !== $block_name ) {
 			return array( array(
 				'id' => self::segment_id( $block_path, 'content', array( $fragment_index ) ),
-				'label' => $label . ' — ' . __( 'Content', 'openlingua' ),
+				'label' => $label . ' — ' . __( 'Content', 'sysopenlang' ),
 				'value' => $fragment, 'format' => 'html', 'kind' => 'content',
 				'block_name' => $block_name,
 				'block_path' => $block_path, 'value_path' => array( $fragment_index ),
@@ -250,7 +250,7 @@ final class Gutenberg_Content {
 			$value = $match[2][0];
 			if ( ! self::has_visible_text( $value ) ) { continue; }
 			$counts[ $tag ]++;
-			$field = 'th' === $tag ? __( 'Header cell', 'openlingua' ) : ( 'caption' === $tag ? __( 'Caption', 'openlingua' ) : __( 'Cell', 'openlingua' ) );
+			$field = 'th' === $tag ? __( 'Header cell', 'sysopenlang' ) : ( 'caption' === $tag ? __( 'Caption', 'sysopenlang' ) : __( 'Cell', 'sysopenlang' ) );
 			$segments[] = array(
 				'id' => self::segment_id( $block_path, 'content', array( $fragment_index, $tag, $counts[ $tag ] ) ),
 				'label' => $label . ' — ' . $field . ' ' . $counts[ $tag ],

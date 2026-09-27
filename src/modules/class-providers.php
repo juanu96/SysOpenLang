@@ -1,8 +1,8 @@
 <?php
-namespace OpenLingua\Modules;
+namespace SysOpenLang\Modules;
 
-use OpenLingua\Contracts\Module;
-use OpenLingua\Contracts\Translation_Provider;
+use SysOpenLang\Contracts\Module;
+use SysOpenLang\Contracts\Translation_Provider;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -50,11 +50,11 @@ final class Providers implements Module {
 	}
 
 	public static function setup_guide( array $steps, $note = '' ) {
-		echo '<div class="openlingua-provider-guide"><h3>' . esc_html__( 'How to get your API key', 'openlingua' ) . '</h3><ol>';
+		echo '<div class="openlingua-provider-guide"><h3>' . esc_html__( 'How to get your API key', 'sysopenlang' ) . '</h3><ol>';
 		foreach ( $steps as $step ) {
 			echo '<li>' . esc_html( $step['text'] ?? '' );
 			if ( ! empty( $step['url'] ) ) {
-				echo ' <a href="' . esc_url( $step['url'] ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( $step['label'] ?? __( 'Open official page', 'openlingua' ) ) . '<span class="screen-reader-text"> ' . esc_html__( '(opens in a new tab)', 'openlingua' ) . '</span></a>';
+				echo ' <a href="' . esc_url( $step['url'] ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( $step['label'] ?? __( 'Open official page', 'sysopenlang' ) ) . '<span class="screen-reader-text"> ' . esc_html__( '(opens in a new tab)', 'sysopenlang' ) . '</span></a>';
 			}
 			echo '</li>';
 		}

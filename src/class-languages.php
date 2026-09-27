@@ -1,5 +1,5 @@
 <?php
-namespace OpenLingua;
+namespace SysOpenLang;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -9,8 +9,8 @@ final class Languages {
 	public static function all() {
 		$languages = get_option( 'openlingua_languages', array() );
 		$languages = is_array( $languages ) ? $languages : array();
-		if ( class_exists( 'OpenLingua\\Modules\\Language_Catalog' ) ) {
-			$catalog = \OpenLingua\Modules\Language_Catalog::merged();
+		if ( class_exists( 'SysOpenLang\\Modules\\Language_Catalog' ) ) {
+			$catalog = \SysOpenLang\Modules\Language_Catalog::merged();
 			foreach ( $languages as $code => $language ) { $languages[ $code ] = array_replace( $catalog[ $code ] ?? array(), $language ); }
 		}
 		$settings = (array) get_option( 'openlingua_language_settings', array() );

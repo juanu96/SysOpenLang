@@ -1,7 +1,7 @@
 <?php
-namespace OpenLingua;
+namespace SysOpenLang;
 
-use OpenLingua\Contracts\Module;
+use SysOpenLang\Contracts\Module;
 
 defined( 'ABSPATH' ) || exit;
 

@@ -14,8 +14,8 @@ namespace {
 	function home_url( $path = '/' ) { return 'https://example.test' . $path; }
 }
 
-namespace OpenLingua\Contracts { interface Module {} }
-namespace OpenLingua {
+namespace SysOpenLang\Contracts { interface Module {} }
+namespace SysOpenLang {
 	class Languages {
 		public static function current() { return 'es'; }
 		public static function is_valid( $language ) { return 'es' === $language; }
@@ -35,15 +35,15 @@ namespace {
 		echo "PASS: {$message}\n";
 	}
 
-	\OpenLingua\Modules\Menus::hooks();
+	\SysOpenLang\Modules\Menus::hooks();
 	global $openlingua_test_filters;
 	menu_home_assert( isset( $openlingua_test_filters['wp_nav_menu_objects'] ), 'registers the native WordPress menu-item render hook' );
 	$front = (object) array( 'type' => 'post_type', 'object' => 'page', 'object_id' => 20, 'url' => 'https://example.test/es/inicio/' );
 	$other = (object) array( 'type' => 'post_type', 'object' => 'page', 'object_id' => 21, 'url' => 'https://example.test/es/contacto/' );
 	$custom = (object) array( 'type' => 'custom', 'object' => 'custom', 'object_id' => 0, 'url' => 'https://outside.example/' );
-	$items = \OpenLingua\Modules\Menus::localize_front_page_links( array( $front, $other, $custom ) );
+	$items = \SysOpenLang\Modules\Menus::localize_front_page_links( array( $front, $other, $custom ) );
 	menu_home_assert( 'https://example.test/es/' === $items[0]->url, 'maps the translated static front page menu item to the language root' );
 	menu_home_assert( 'https://example.test/es/contacto/' === $items[1]->url, 'does not alter another page menu item' );
 	menu_home_assert( 'https://outside.example/' === $items[2]->url, 'does not alter a custom external menu item' );
-	echo "All OpenLingua front-page menu link tests passed.\n";
+	echo "All SysOpenLang front-page menu link tests passed.\n";
 }

@@ -39,7 +39,7 @@ function apply_filters( $hook, $value ) { return $value; }
 require dirname( __DIR__ ) . '/src/contracts/interface-content-extractor.php';
 require dirname( __DIR__ ) . '/src/class-structured-meta-content.php';
 
-$extractor = new \OpenLingua\Structured_Meta_Content();
+$extractor = new \SysOpenLang\Structured_Meta_Content();
 $source = $GLOBALS['ol_posts'][1];
 $target = $GLOBALS['ol_posts'][2];
 
@@ -65,7 +65,7 @@ ksort( $by_value );
 ksort( $reordered );
 if ( $by_value !== $reordered ) { throw new RuntimeException( 'Stable node identities did not survive reordering.' ); }
 
-$inspection = \OpenLingua\Structured_Meta_Content::inspect( $source );
+$inspection = \SysOpenLang\Structured_Meta_Content::inspect( $source );
 if ( 'translatable-document' !== $inspection['_builder_document'] || 'acf-field' !== $inspection['headline'] || 'excluded-key' !== $inspection['_builder_cache'] ) { throw new RuntimeException( 'Inspection reasons are incorrect.' ); }
 
 echo "Structured meta extraction tests passed.\n";

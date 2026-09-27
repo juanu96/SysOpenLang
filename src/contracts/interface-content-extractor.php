@@ -1,5 +1,5 @@
 <?php
-namespace OpenLingua\Contracts;
+namespace SysOpenLang\Contracts;
 
 defined( 'ABSPATH' ) || exit;
 

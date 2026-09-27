@@ -1,5 +1,5 @@
 <?php
-namespace OpenLingua;
+namespace SysOpenLang;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -111,7 +111,7 @@ final class Routing {
 		$cache_key = 'route:' . md5( Languages::current() . '|' . $slug . '|' . implode( ',', $post_types ) );
 		$candidates = wp_cache_get( $cache_key, 'openlingua_routes', false, $found );
 		if ( ! $found ) {
-			// This lookup joins OpenLingua's relationship table, so no WordPress query API can express it.
+			// This lookup joins SysOpenLang's relationship table, so no WordPress query API can express it.
 			$candidates = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 				$wpdb->prepare(
 					"SELECT p.ID, p.post_type FROM %i p INNER JOIN %i ol_route ON ol_route.element_type = 'post' AND ol_route.element_id = p.ID WHERE ol_route.language = %s AND p.post_name = %s AND p.post_status NOT IN ('trash','auto-draft') ORDER BY p.ID",

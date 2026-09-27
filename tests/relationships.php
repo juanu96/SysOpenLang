@@ -8,7 +8,7 @@ namespace {
 	function get_permalink( $id ) { return 20 === (int) $id ? 'https://example.test/es/servicios/' : ''; }
 }
 
-namespace OpenLingua {
+namespace SysOpenLang {
 	final class Translations {
 		public static $target = 20;
 		public static function translated_id( $type, $id, $language ) {
@@ -32,5 +32,5 @@ namespace OpenLingua {
 	Translations::$target = 30;
 	relationships_assert( 'https://example.test/services/' === Gutenberg_Content::map_internal_url( 'https://example.test/services/', 'es' ), 'keeps the source URL when the translation is not published' );
 
-	echo "All OpenLingua relationship tests passed.\n";
+	echo "All SysOpenLang relationship tests passed.\n";
 }

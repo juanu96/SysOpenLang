@@ -11,8 +11,8 @@
 
 ## 1.20.33
 
-- Emit OpenLingua WP-CLI exports to standard output instead of writing to arbitrary filesystem paths.
-- Limit the unfinished setup notice to OpenLingua administration screens.
+- Emit SysOpenLang WP-CLI exports to standard output instead of writing to arbitrary filesystem paths.
+- Limit the unfinished setup notice to SysOpenLang administration screens.
 
 ## 1.20.32
 
@@ -28,7 +28,7 @@
 
 ## 1.20.29
 
-- Preserve third-party Divi text defaults discovered while the original page renders, so they remain editable when the OpenLingua editor runs in an admin request where the third-party module is not registered.
+- Preserve third-party Divi text defaults discovered while the original page renders, so they remain editable when the SysOpenLang editor runs in an admin request where the third-party module is not registered.
 
 ## 1.20.28
 
@@ -115,7 +115,7 @@
 
 ## 1.20.7
 
-- Filter normal frontend taxonomy queries by the current OpenLingua language, including categories generated dynamically by third-party modules.
+- Filter normal frontend taxonomy queries by the current SysOpenLang language, including categories generated dynamically by third-party modules.
 
 ## 1.20.6
 
@@ -139,11 +139,11 @@
 
 ## 1.20.1
 
-- Expose `openlinguaLanguage` in native CPT-to-taxonomy WPGraphQL connection `where` inputs, including custom taxonomies such as `listing.statusListings`.
+- Expose `sysopenlangLanguage` in native CPT-to-taxonomy WPGraphQL connection `where` inputs, including custom taxonomies such as `listing.statusListings`.
 
 ## 1.20.0
 
-- Filter WPGraphQL taxonomy connections by the requested OpenLingua language so third-party applications receive language-correct categories, tags, and custom taxonomy terms alongside CPT content.
+- Filter WPGraphQL taxonomy connections by the requested SysOpenLang language so third-party applications receive language-correct categories, tags, and custom taxonomy terms alongside CPT content.
 
 ## 1.19.4
 
@@ -155,7 +155,7 @@
 
 ## 1.19.2
 
-- Filter third-party secondary `WP_Query` instances, including Divi Blog Extras modules and widgets, by the active OpenLingua language.
+- Filter third-party secondary `WP_Query` instances, including Divi Blog Extras modules and widgets, by the active SysOpenLang language.
 - Resolve the active language for AJAX content queries from an explicit request value, the referring URL, or configured language domain.
 
 ## 1.19.1
@@ -164,8 +164,8 @@
 
 ## 1.19.0
 
-- Filter WPGraphQL custom-post-type connections by the active OpenLingua language.
-- Add the optional `where.openlinguaLanguage` GraphQL argument plus query-string and request-header language overrides.
+- Filter WPGraphQL custom-post-type connections by the active SysOpenLang language.
+- Add the optional `where.sysopenlangLanguage` GraphQL argument plus query-string and request-header language overrides.
 
 ## 1.18.1
 
@@ -174,7 +174,7 @@
 
 ## 1.18.0
 
-- Redesigned first-run setup as a spacious, interactive five-step assistant with OpenLingua's own visual language.
+- Redesigned first-run setup as a spacious, interactive five-step assistant with SysOpenLang's own visual language.
 - Added searchable language cards, primary-language synchronization, URL structure choices, and translation workflow defaults.
 - Added a live selector designer supporting flags, names, native names, inline or dropdown layouts, and footer placement.
 - Added a final review screen and clearer progress, navigation, responsive behavior, and completion states.
@@ -182,7 +182,7 @@
 ## 1.17.0
 
 - Add a polished three-step first-install wizard for selecting languages, URL structure, and language-selector appearance.
-- Open the wizard automatically on the first OpenLingua visit only for genuinely new installations.
+- Open the wizard automatically on the first SysOpenLang visit only for genuinely new installations.
 - Preserve uninterrupted access for upgraded and previously configured sites.
 
 ## 1.16.0
@@ -199,7 +199,7 @@
 - Discover structured visual-builder documents stored in JSON or nested post metadata without hardcoding plugin names.
 - Keep translated fields attached to stable builder element IDs when components are reordered.
 - Exclude ACF-managed data, URLs, media, styling controls, caches, code, and opaque objects from generic discovery.
-- Add a read-only visual-builder field inspector to OpenLingua diagnostics.
+- Add a read-only visual-builder field inspector to SysOpenLang diagnostics.
 - Translate taxonomy SEO fields for supported SEO integrations and filter AIOSEO sitemap entries by language visibility.
 - Preview portable imports, report invalid records and conflicts, create a database backup, and offer exact rollback.
 - Filter the translation workspace by pending or translated fields, show visible counts, link to WordPress revisions, and cache translation-memory indexes persistently.
@@ -261,14 +261,14 @@
 
 ## 1.9.0
 
-- Add a front-end WordPress toolbar action that opens the current page in OpenLingua's translation editor.
+- Add a front-end WordPress toolbar action that opens the current page in SysOpenLang's translation editor.
 - Show the action only for linked translations and users who can edit both the source and target content.
 
 ## 1.8.2
 
 - Exclude encoded Slider Revolution shortcodes and technical module attributes from Divi translation fields.
 - Preserve Slider Revolution aliases and module structure exactly when saving a page translation.
-- Cover visible rendered slider layers through OpenLingua's dynamic shortcode discovery and translation editor.
+- Cover visible rendered slider layers through SysOpenLang's dynamic shortcode discovery and translation editor.
 - Repair previously altered Slider Revolution module payloads from the linked source layout during translation saves.
 
 ## 1.8.1
@@ -394,7 +394,7 @@
 
 ## 1.2.3
 
-- Reworked the translation editor into an original OpenLingua workspace with independent field cards, a distinct language route, and responsive actions.
+- Reworked the translation editor into an original SysOpenLang workspace with independent field cards, a distinct language route, and responsive actions.
 
 ## 1.2.2
 

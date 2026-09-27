@@ -1,5 +1,5 @@
 <?php
-namespace OpenLingua\Modules {
+namespace SysOpenLang\Modules {
 	final class Language_Settings {
 		public static function get() {
 			return array( 'switcher' => array( 'show_flag' => false, 'show_name' => true, 'show_native_name' => false, 'show_current' => true, 'dropdown' => true ) );
@@ -7,7 +7,7 @@ namespace OpenLingua\Modules {
 	}
 }
 
-namespace OpenLingua {
+namespace SysOpenLang {
 	final class Languages {
 		public static $current = 'en';
 		public static function current() { return self::$current; }
@@ -23,8 +23,8 @@ namespace OpenLingua {
 
 namespace {
 	define( 'ABSPATH', __DIR__ . '/' );
-	define( 'OPENLINGUA_FILE', dirname( __DIR__ ) . '/openlingua.php' );
-	define( 'OPENLINGUA_VERSION', 'test' );
+	define( 'SYSOPENLANG_FILE', dirname( __DIR__ ) . '/sysopenlang.php' );
+	define( 'SYSOPENLANG_VERSION', 'test' );
 	$GLOBALS['openlingua_post_statuses'] = array( 10 => 'publish', 20 => 'draft' );
 
 	function shortcode_atts( $defaults, $values ) { return array_merge( $defaults, $values ); }
@@ -57,20 +57,20 @@ namespace {
 		echo "PASS: {$message}\n";
 	}
 
-	$hidden = \OpenLingua\Plugin::switcher( array( 'context' => 'menu' ) );
+	$hidden = \SysOpenLang\Plugin::switcher( array( 'context' => 'menu' ) );
 	switcher_assert( false !== strpos( $hidden, 'English' ), 'keeps the current language visible when no translation exists' );
 	switcher_assert( false !== strpos( $hidden, 'openlingua-switcher--single' ), 'renders a non-interactive current-language indicator' );
 	switcher_assert( false === strpos( $hidden, '<details' ) && false === strpos( $hidden, 'Spanish' ) && false === strpos( $hidden, 'French' ), 'does not render an empty dropdown or unavailable languages' );
 
 	$GLOBALS['openlingua_post_statuses'][20] = 'publish';
-	$visible = \OpenLingua\Plugin::switcher( array( 'context' => 'menu' ) );
+	$visible = \SysOpenLang\Plugin::switcher( array( 'context' => 'menu' ) );
 	switcher_assert( false !== strpos( $visible, 'Spanish' ), 'shows an available published translation' );
 	switcher_assert( false === strpos( $visible, 'French' ), 'hides a language without a translation' );
 	switcher_assert( false === strpos( $visible, 'English</a>' ), 'keeps the current language in the dropdown summary only' );
 
 	$GLOBALS['openlingua_post_statuses'][20] = 'draft';
-	$draft_hidden = \OpenLingua\Plugin::switcher( array( 'context' => 'menu' ) );
+	$draft_hidden = \SysOpenLang\Plugin::switcher( array( 'context' => 'menu' ) );
 	switcher_assert( false !== strpos( $draft_hidden, 'English' ) && false === strpos( $draft_hidden, 'Spanish' ), 'hides draft translations but keeps the current language' );
 
-	echo "All OpenLingua switcher availability tests passed.\n";
+	echo "All SysOpenLang switcher availability tests passed.\n";
 }

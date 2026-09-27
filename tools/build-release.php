@@ -1,6 +1,6 @@
 <?php
 /**
- * Build a clean WordPress-installable OpenLingua archive.
+ * Build a clean WordPress-installable SysOpenLang archive.
  *
  * Usage: php tools/build-release.php
  */
@@ -10,15 +10,15 @@ if ( PHP_SAPI !== 'cli' ) {
 }
 
 $root       = dirname( __DIR__ );
-$plugin     = file_get_contents( $root . DIRECTORY_SEPARATOR . 'openlingua.php' );
+$plugin     = file_get_contents( $root . DIRECTORY_SEPARATOR . 'sysopenlang.php' );
 $version    = preg_match( '/^\s*\*\s*Version:\s*([^\s]+)/mi', $plugin, $matches ) ? $matches[1] : '';
 if ( '' === $version ) {
 	fwrite( STDERR, "Could not determine the plugin version.\n" );
 	exit( 1 );
 }
-$archive    = $root . DIRECTORY_SEPARATOR . 'openlingua-' . $version . '.zip';
+$archive    = $root . DIRECTORY_SEPARATOR . 'sysopenlang.zip';
 $directories = array( 'assets', 'docs', 'languages', 'src' );
-$files       = array( 'CHANGELOG.md', 'LICENSE', 'SECURITY.md', 'openlingua.php', 'readme.txt', 'uninstall.php' );
+$files       = array( 'CHANGELOG.md', 'LICENSE', 'SECURITY.md', 'sysopenlang.php', 'readme.txt', 'uninstall.php' );
 $entries     = array();
 
 foreach ( $directories as $directory ) {
@@ -30,12 +30,12 @@ foreach ( $directories as $directory ) {
 			continue;
 		}
 		$relative = substr( $item->getPathname(), strlen( $root ) + 1 );
-		$entries[ 'openlingua/' . str_replace( DIRECTORY_SEPARATOR, '/', $relative ) ] = $item->getPathname();
+		$entries[ 'sysopenlang/' . str_replace( DIRECTORY_SEPARATOR, '/', $relative ) ] = $item->getPathname();
 	}
 }
 
 foreach ( $files as $file ) {
-	$entries[ 'openlingua/' . $file ] = $root . DIRECTORY_SEPARATOR . $file;
+	$entries[ 'sysopenlang/' . $file ] = $root . DIRECTORY_SEPARATOR . $file;
 }
 
 ksort( $entries );

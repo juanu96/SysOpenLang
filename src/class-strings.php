@@ -1,5 +1,5 @@
 <?php
-namespace OpenLingua;
+namespace SysOpenLang;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -11,7 +11,7 @@ final class Strings {
 		$table = Database::table( 'strings' );
 		$domain = sanitize_key( $domain );
 		$key = sanitize_key( $key );
-		// The atomic upsert targets OpenLingua's custom strings table.
+		// The atomic upsert targets SysOpenLang's custom strings table.
 		$wpdb->query( $wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomic write followed by explicit cache invalidation.
 			"INSERT INTO %i (domain,string_key,source_language,source_text,translations,updated_at) VALUES (%s,%s,%s,%s,%s,%s)
 			ON DUPLICATE KEY UPDATE source_text = VALUES(source_text), updated_at = VALUES(updated_at)",
@@ -32,7 +32,7 @@ final class Strings {
 		} else {
 			$row = wp_cache_get( $cache_key, 'openlingua_strings', false, $found );
 			if ( ! $found ) {
-				// OpenLingua strings live in a custom table and require a direct prepared lookup.
+				// SysOpenLang strings live in a custom table and require a direct prepared lookup.
 				$row = $wpdb->get_row( $wpdb->prepare( 'SELECT source_text, translations FROM %i WHERE domain = %s AND string_key = %s', $table, $domain, $key ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 				wp_cache_set( $cache_key, $row ?: false, 'openlingua_strings' );
 			}

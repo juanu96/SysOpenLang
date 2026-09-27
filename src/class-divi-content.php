@@ -1,5 +1,5 @@
 <?php
-namespace OpenLingua;
+namespace SysOpenLang;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -137,7 +137,7 @@ final class Divi_Content {
 				if ( ! in_array( $module, self::$content_modules, true ) && preg_match( '~\[\/?[a-z][a-z0-9_-]*\b~i', $value ) ) { break; }
 				$segments[] = array(
 					'id' => self::segment_id( $module, $opening['occurrence'], 'content' ),
-					'label' => $opening['label'] . ' — ' . __( 'Content', 'openlingua' ),
+					'label' => $opening['label'] . ' — ' . __( 'Content', 'sysopenlang' ),
 					'value' => $value, 'start' => $opening['content_start'], 'length' => strlen( $value ), 'kind' => 'content', 'module' => $module, 'field' => 'content',
 				);
 				break;

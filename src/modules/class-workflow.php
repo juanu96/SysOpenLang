@@ -1,8 +1,8 @@
 <?php
-namespace OpenLingua\Modules;
+namespace SysOpenLang\Modules;
 
-use OpenLingua\Contracts\Module;
-use OpenLingua\Translations;
+use SysOpenLang\Contracts\Module;
+use SysOpenLang\Translations;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -20,8 +20,8 @@ final class Workflow implements Module {
 
 	public static function statuses() {
 		return apply_filters( 'openlingua_workflow_statuses', array(
-			'draft' => __( 'Draft', 'openlingua' ), 'in-progress' => __( 'In progress', 'openlingua' ),
-			'complete' => __( 'Complete', 'openlingua' ), 'outdated' => __( 'Outdated', 'openlingua' ),
+			'draft' => __( 'Draft', 'sysopenlang' ), 'in-progress' => __( 'In progress', 'sysopenlang' ),
+			'complete' => __( 'Complete', 'sysopenlang' ), 'outdated' => __( 'Outdated', 'sysopenlang' ),
 		) );
 	}
 
@@ -70,7 +70,7 @@ final class Workflow implements Module {
 		}
 		$emails = array_values( array_unique( array_filter( array_map( 'sanitize_email', $emails ) ) ) );
 		/* translators: %s: source content title. */
-		if ( $emails ) { wp_mail( $emails, sprintf( __( 'Translation update needed: %s', 'openlingua' ), $post->post_title ), __( 'Source content changed and one or more translations are now marked as outdated.', 'openlingua' ) ); }
+		if ( $emails ) { wp_mail( $emails, sprintf( __( 'Translation update needed: %s', 'sysopenlang' ), $post->post_title ), __( 'Source content changed and one or more translations are now marked as outdated.', 'sysopenlang' ) ); }
 	}
 
 	public static function mark_created( $translation_id, $source_id ) {
@@ -80,7 +80,7 @@ final class Workflow implements Module {
 	}
 
 	public static function column( $columns ) {
-		$columns['openlingua_status'] = __( 'Translation', 'openlingua' );
+		$columns['openlingua_status'] = __( 'Translation', 'sysopenlang' );
 		return $columns;
 	}
 

@@ -1,5 +1,5 @@
 <?php
-namespace OpenLingua;
+namespace SysOpenLang;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -11,7 +11,7 @@ final class Translations {
 		global $wpdb;
 		$language = sanitize_key( $language );
 		if ( ! Languages::is_valid( $language ) ) {
-			return new \WP_Error( 'openlingua_invalid_language', __( 'Invalid language.', 'openlingua' ) );
+			return new \WP_Error( 'openlingua_invalid_language', __( 'Invalid language.', 'sysopenlang' ) );
 		}
 		$group_uuid = $group_uuid ?: wp_generate_uuid4();
 		$table      = Database::table( 'translations' );
@@ -27,7 +27,7 @@ final class Translations {
 		if ( $existing ) {
 			$wpdb->update( $table, $data, array( 'id' => absint( $existing ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom-table write followed by cache invalidation.
 		} else {
-			$wpdb->insert( $table, $data ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Writes to OpenLingua's custom relationship table.
+			$wpdb->insert( $table, $data ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Writes to SysOpenLang's custom relationship table.
 		}
 		self::invalidate( $element_type, $element_id, $previous ? $previous->group_uuid : '' );
 		self::invalidate( $element_type, $element_id, $group_uuid );
@@ -41,7 +41,7 @@ final class Translations {
 		$cached = wp_cache_get( $key, 'openlingua_rows', false, $found );
 		if ( $found ) { self::$rows[ $key ] = $cached ?: null; return self::$rows[ $key ]; }
 		$table = Database::table( 'translations' );
-		$row = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE element_type = %s AND element_id = %d', $table, $element_type, $element_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Cached lookup in OpenLingua's custom table.
+		$row = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE element_type = %s AND element_id = %d', $table, $element_type, $element_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Cached lookup in SysOpenLang's custom table.
 		self::$rows[ $key ] = $row;
 		wp_cache_set( $key, $row ?: false, 'openlingua_rows' );
 		return $row;
@@ -58,7 +58,7 @@ final class Translations {
 		$cached = wp_cache_get( $cache_key, 'openlingua_groups', false, $found );
 		if ( $found ) { self::$groups[ $cache_key ] = is_array( $cached ) ? $cached : array(); return self::$groups[ $cache_key ]; }
 		$table = Database::table( 'translations' );
-		$rows  = $wpdb->get_results( $wpdb->prepare( 'SELECT language, element_id FROM %i WHERE element_type = %s AND group_uuid = %s', $table, $element_type, $row->group_uuid ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Cached lookup in OpenLingua's custom table.
+		$rows  = $wpdb->get_results( $wpdb->prepare( 'SELECT language, element_id FROM %i WHERE element_type = %s AND group_uuid = %s', $table, $element_type, $row->group_uuid ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Cached lookup in SysOpenLang's custom table.
 		self::$groups[ $cache_key ] = wp_list_pluck( $rows, 'element_id', 'language' );
 		wp_cache_set( $cache_key, self::$groups[ $cache_key ], 'openlingua_groups' );
 		return self::$groups[ $cache_key ];

@@ -1,5 +1,5 @@
 <?php
-namespace OpenLingua;
+namespace SysOpenLang;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -36,7 +36,7 @@ final class Taxonomies {
 
 		$requested = sanitize_key( $args['openlingua_language'] ?? '' );
 		if ( ! $requested && defined( 'REST_REQUEST' ) && REST_REQUEST ) {
-			$requested = sanitize_key( wp_unslash( $_GET['lang'] ?? $_SERVER['HTTP_X_OPENLINGUA_LANGUAGE'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Public read-only language selector.
+			$requested = sanitize_key( wp_unslash( $_GET['lang'] ?? $_SERVER['HTTP_X_SYSOPENLANG_LANGUAGE'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Public read-only language selector.
 		}
 		if ( is_admin() && ! Languages::is_valid( $requested ) ) { return; }
 		$language = Languages::is_valid( $requested ) ? $requested : Languages::current();
@@ -84,7 +84,7 @@ final class Taxonomies {
 		unset( $taxonomies );
 		// A relationship query (REST's post fields, WPGraphQL connected terms and
 		// most builder modules) already has a language-scoped post. Filtering its
-		// terms again through OpenLingua's term registry can hide valid legacy or
+		// terms again through SysOpenLang's term registry can hide valid legacy or
 		// third-party terms whose relationship exists but whose term group has not
 		// been normalized yet. Return the physical assignments unchanged; root
 		// taxonomy queries still receive the language constraint below.
@@ -96,14 +96,14 @@ final class Taxonomies {
 		}
 		$requested = sanitize_key( $args['openlingua_language'] ?? '' );
 		if ( ! $requested && defined( 'REST_REQUEST' ) && REST_REQUEST ) {
-			$requested = sanitize_key( wp_unslash( $_GET['lang'] ?? $_SERVER['HTTP_X_OPENLINGUA_LANGUAGE'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Public read-only language selector.
+			$requested = sanitize_key( wp_unslash( $_GET['lang'] ?? $_SERVER['HTTP_X_SYSOPENLANG_LANGUAGE'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Public read-only language selector.
 		}
 		$admin_list_language = self::admin_term_list_language( $args );
 		if ( $admin_list_language ) {
 			return self::filter_language_clauses( $clauses, $admin_list_language );
 		}
 		// WPGraphQL intentionally suppresses ordinary term filters. An explicit
-		// OpenLingua language request must still be honored; otherwise connected
+		// SysOpenLang language request must still be honored; otherwise connected
 		// custom-taxonomy fields are silently empty in every secondary language.
 		$has_explicit_language = Languages::is_valid( $requested );
 		if ( ( ! empty( $args['suppress_filter'] ) && ! $has_explicit_language ) || ! empty( $args['openlingua_skip_language_filter'] ) || ( is_admin() && ! $has_explicit_language ) ) {
@@ -215,7 +215,7 @@ final class Taxonomies {
 		$source         = $source_post_id ? get_post( $source_post_id ) : null;
 		$target         = $target_post_id ? get_post( $target_post_id ) : null;
 		if ( ! $source || ! $target || $source->post_type !== $target->post_type || ! Languages::is_valid( $language ) ) {
-			return new \WP_Error( 'openlingua_invalid_post_term_sync', __( 'Invalid post taxonomy synchronization request.', 'openlingua' ) );
+			return new \WP_Error( 'openlingua_invalid_post_term_sync', __( 'Invalid post taxonomy synchronization request.', 'sysopenlang' ) );
 		}
 
 		global $wpdb;
@@ -290,7 +290,7 @@ final class Taxonomies {
 			$default,
 			$default,
 			$limit
-		) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Maintenance repair across OpenLingua's relationship table.
+		) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Maintenance repair across SysOpenLang's relationship table.
 		$summary = array( 'synced' => 0, 'failed' => 0, 'skipped' => 0 );
 		foreach ( (array) $rows as $row ) {
 			$result = self::synchronize_post_terms( $row->source_id, $row->target_id, $row->target_language );
@@ -308,7 +308,7 @@ final class Taxonomies {
 	 * languages cannot be paired safely from their name or slug: both values
 	 * can be valid but refer to different concepts. The method keeps the target
 	 * term, its WordPress ID, metadata and public URL intact, and changes only
-	 * OpenLingua's relationship record.
+	 * SysOpenLang's relationship record.
 	 *
 	 * @return true|\WP_Error
 	 */
@@ -319,7 +319,7 @@ final class Taxonomies {
 		$source         = $source_term_id ? get_term( $source_term_id ) : null;
 		$target         = $target_term_id ? get_term( $target_term_id ) : null;
 		if ( ! $source || ! $target || is_wp_error( $source ) || is_wp_error( $target ) || $source_term_id === $target_term_id || $source->taxonomy !== $target->taxonomy || ! Languages::is_valid( $language ) ) {
-			return new \WP_Error( 'openlingua_invalid_term_link', __( 'Invalid taxonomy translation link.', 'openlingua' ) );
+			return new \WP_Error( 'openlingua_invalid_term_link', __( 'Invalid taxonomy translation link.', 'sysopenlang' ) );
 		}
 
 		$source_row = Translations::row( 'term', $source_term_id );
@@ -329,12 +329,12 @@ final class Taxonomies {
 			$source_row = Translations::row( 'term', $source_term_id );
 		}
 		if ( ! $source_row || $source_row->language === $language ) {
-			return new \WP_Error( 'openlingua_invalid_term_link_language', __( 'A translation must use a different language from its original term.', 'openlingua' ) );
+			return new \WP_Error( 'openlingua_invalid_term_link_language', __( 'A translation must use a different language from its original term.', 'sysopenlang' ) );
 		}
 
 		$existing = Translations::translated_id( 'term', $source_term_id, $language );
 		if ( $existing && $existing !== $target_term_id ) {
-			return new \WP_Error( 'openlingua_term_translation_exists', __( 'This original term already has a translation in that language.', 'openlingua' ) );
+			return new \WP_Error( 'openlingua_term_translation_exists', __( 'This original term already has a translation in that language.', 'sysopenlang' ) );
 		}
 		$assigned = Translations::assign( 'term', $target_term_id, $language, $source_row->group_uuid, $source_row->language ?: Languages::default_code() );
 		return is_wp_error( $assigned ) ? $assigned : true;
@@ -351,10 +351,10 @@ final class Taxonomies {
 	public static function ensure_translation( $term_id, $language, array $ancestry = array() ) {
 		$term_id = absint( $term_id );
 		$language = sanitize_key( $language );
-		if ( ! $term_id || ! Languages::is_valid( $language ) ) { return new \WP_Error( 'openlingua_invalid_term_translation', __( 'Invalid term translation request.', 'openlingua' ) ); }
-		if ( in_array( $term_id, $ancestry, true ) ) { return new \WP_Error( 'openlingua_term_hierarchy_cycle', __( 'A taxonomy hierarchy cannot contain a cycle.', 'openlingua' ) ); }
+		if ( ! $term_id || ! Languages::is_valid( $language ) ) { return new \WP_Error( 'openlingua_invalid_term_translation', __( 'Invalid term translation request.', 'sysopenlang' ) ); }
+		if ( in_array( $term_id, $ancestry, true ) ) { return new \WP_Error( 'openlingua_term_hierarchy_cycle', __( 'A taxonomy hierarchy cannot contain a cycle.', 'sysopenlang' ) ); }
 		$term = get_term( $term_id );
-		if ( ! $term || is_wp_error( $term ) ) { return new \WP_Error( 'openlingua_term_not_found', __( 'Source term not found.', 'openlingua' ) ); }
+		if ( ! $term || is_wp_error( $term ) ) { return new \WP_Error( 'openlingua_term_not_found', __( 'Source term not found.', 'sysopenlang' ) ); }
 		$row = Translations::row( 'term', $term_id );
 		if ( ! $row ) {
 			$group = Translations::assign( 'term', $term_id, Languages::default_code() );
@@ -363,7 +363,7 @@ final class Taxonomies {
 		} else {
 			$group = $row->group_uuid;
 		}
-		if ( ! $row ) { return new \WP_Error( 'openlingua_term_link_failed', __( 'The source term could not be linked to a language.', 'openlingua' ) ); }
+		if ( ! $row ) { return new \WP_Error( 'openlingua_term_link_failed', __( 'The source term could not be linked to a language.', 'sysopenlang' ) ); }
 		$target_id = Translations::translated_id( 'term', $term_id, $language );
 		$parent_id = 0;
 		if ( $term->parent ) {
@@ -419,13 +419,13 @@ final class Taxonomies {
 	}
 
 	public static function admin_menu() {
-		add_submenu_page( 'openlingua', __( 'Taxonomy translations', 'openlingua' ), __( 'Taxonomies', 'openlingua' ), 'manage_categories', 'openlingua-taxonomies', array( __CLASS__, 'page' ) );
+		add_submenu_page( 'openlingua', __( 'Taxonomy translations', 'sysopenlang' ), __( 'Taxonomies', 'sysopenlang' ), 'manage_categories', 'openlingua-taxonomies', array( __CLASS__, 'page' ) );
 	}
 
 	public static function assets( $hook ) {
-		if ( 'openlingua_page_openlingua-taxonomies' !== $hook ) { return; }
-		wp_enqueue_style( 'openlingua-admin-taxonomies', plugins_url( 'assets/admin-taxonomies.css', OPENLINGUA_FILE ), array( 'dashicons' ), OPENLINGUA_VERSION );
-		wp_enqueue_script( 'openlingua-admin-taxonomies', plugins_url( 'assets/admin-taxonomies.js', OPENLINGUA_FILE ), array(), OPENLINGUA_VERSION, true );
+		if ( ! in_array( $hook, array( 'openlingua_page_openlingua-taxonomies', 'sysopenlang_page_openlingua-taxonomies' ), true ) ) { return; }
+		wp_enqueue_style( 'openlingua-admin-taxonomies', plugins_url( 'assets/admin-taxonomies.css', SYSOPENLANG_FILE ), array( 'dashicons' ), SYSOPENLANG_VERSION );
+		wp_enqueue_script( 'openlingua-admin-taxonomies', plugins_url( 'assets/admin-taxonomies.js', SYSOPENLANG_FILE ), array(), SYSOPENLANG_VERSION, true );
 	}
 
 	public static function page() {
@@ -448,16 +448,16 @@ final class Taxonomies {
 		$terms = array_slice( $terms, ( $paged - 1 ) * $per_page, $per_page );
 		$return_to = add_query_arg( array_filter( array( 'page' => 'openlingua-taxonomies', 'taxonomy' => $taxonomy, 's' => $search, 'paged' => $paged ) ), admin_url( 'admin.php' ) );
 
-		echo '<div class="wrap openlingua-taxonomies"><h1>' . esc_html__( 'Taxonomy translations', 'openlingua' ) . '</h1><p class="description">' . esc_html__( 'Translate term names, URL slugs and descriptions from one compact screen.', 'openlingua' ) . '</p>';
-		if ( isset( $_GET['updated'] ) ) { echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Taxonomy translation saved.', 'openlingua' ) . '</p></div>'; } // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		echo '<form method="get" class="openlingua-taxonomies__filters"><input type="hidden" name="page" value="openlingua-taxonomies"><label><span class="screen-reader-text">' . esc_html__( 'Search terms', 'openlingua' ) . '</span><input type="search" name="s" value="' . esc_attr( $search ) . '" placeholder="' . esc_attr__( 'Search terms', 'openlingua' ) . '"></label><label><span class="screen-reader-text">' . esc_html__( 'Filter by taxonomy', 'openlingua' ) . '</span><select name="taxonomy">';
+		echo '<div class="wrap openlingua-taxonomies"><h1>' . esc_html__( 'Taxonomy translations', 'sysopenlang' ) . '</h1><p class="description">' . esc_html__( 'Translate term names, URL slugs and descriptions from one compact screen.', 'sysopenlang' ) . '</p>';
+		if ( isset( $_GET['updated'] ) ) { echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Taxonomy translation saved.', 'sysopenlang' ) . '</p></div>'; } // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		echo '<form method="get" class="openlingua-taxonomies__filters"><input type="hidden" name="page" value="openlingua-taxonomies"><label><span class="screen-reader-text">' . esc_html__( 'Search terms', 'sysopenlang' ) . '</span><input type="search" name="s" value="' . esc_attr( $search ) . '" placeholder="' . esc_attr__( 'Search terms', 'sysopenlang' ) . '"></label><label><span class="screen-reader-text">' . esc_html__( 'Filter by taxonomy', 'sysopenlang' ) . '</span><select name="taxonomy">';
 		foreach ( $taxonomies as $name => $object ) { echo '<option value="' . esc_attr( $name ) . '" ' . selected( $taxonomy, $name, false ) . '>' . esc_html( $object->labels->singular_name . ' (' . $name . ')' ) . '</option>'; }
-		echo '</select></label>'; submit_button( __( 'Filter', 'openlingua' ), 'secondary', '', false );
-		if ( $search ) { echo '<a class="button" href="' . esc_url( add_query_arg( array( 'page' => 'openlingua-taxonomies', 'taxonomy' => $taxonomy ), admin_url( 'admin.php' ) ) ) . '">' . esc_html__( 'Clear', 'openlingua' ) . '</a>'; }
-		echo '</form><table class="wp-list-table widefat fixed striped"><thead><tr><th class="column-term">' . esc_html__( 'Original term', 'openlingua' ) . '</th><th class="column-taxonomy">' . esc_html__( 'Taxonomy', 'openlingua' ) . '</th><th class="column-description">' . esc_html__( 'Description', 'openlingua' ) . '</th>';
+		echo '</select></label>'; submit_button( __( 'Filter', 'sysopenlang' ), 'secondary', '', false );
+		if ( $search ) { echo '<a class="button" href="' . esc_url( add_query_arg( array( 'page' => 'openlingua-taxonomies', 'taxonomy' => $taxonomy ), admin_url( 'admin.php' ) ) ) . '">' . esc_html__( 'Clear', 'sysopenlang' ) . '</a>'; }
+		echo '</form><table class="wp-list-table widefat fixed striped"><thead><tr><th class="column-term">' . esc_html__( 'Original term', 'sysopenlang' ) . '</th><th class="column-taxonomy">' . esc_html__( 'Taxonomy', 'sysopenlang' ) . '</th><th class="column-description">' . esc_html__( 'Description', 'sysopenlang' ) . '</th>';
 		foreach ( Languages::all() as $code => $language ) { if ( $code !== $default ) { echo '<th class="column-language"><span title="' . esc_attr( $language['name'] ) . '">' . esc_html( $language['flag'] ?? strtoupper( $code ) ) . '</span></th>'; } }
 		echo '</tr></thead><tbody>';
-		if ( ! $terms ) { echo '<tr class="no-items"><td colspan="' . absint( 3 + max( 0, count( Languages::all() ) - 1 ) ) . '">' . esc_html__( 'No terms found.', 'openlingua' ) . '</td></tr>'; }
+		if ( ! $terms ) { echo '<tr class="no-items"><td colspan="' . absint( 3 + max( 0, count( Languages::all() ) - 1 ) ) . '">' . esc_html__( 'No terms found.', 'sysopenlang' ) . '</td></tr>'; }
 		foreach ( $terms as $term ) {
 			$group = Translations::group( 'term', $term->term_id );
 			echo '<tr><td class="column-term"><strong>' . esc_html( $term->name ) . '</strong><code>/' . esc_html( $term->slug ) . '/</code></td><td class="column-taxonomy">' . esc_html( $taxonomies[ $term->taxonomy ]->labels->singular_name ?? $term->taxonomy ) . '</td><td class="column-description"><span>' . esc_html( wp_trim_words( wp_strip_all_tags( $term->description ), 18, '…' ) ) . '</span></td>';
@@ -472,9 +472,9 @@ final class Taxonomies {
 				}
 				$payload = array( 'sourceId' => $term->term_id, 'targetId' => $target_id, 'taxonomy' => $term->taxonomy, 'language' => $code, 'languageName' => $language['name'], 'flag' => $language['flag'] ?? '🌐', 'sourceName' => $term->name, 'name' => $target ? $target->name : $term->name, 'slug' => $target ? $target->slug : $term->slug, 'description' => $target ? $target->description : $term->description, 'seoFields' => $seo_fields );
 				/* translators: %s: language name. */
-				$edit_label = sprintf( __( 'Edit %s translation', 'openlingua' ), $language['name'] );
+				$edit_label = sprintf( __( 'Edit %s translation', 'sysopenlang' ), $language['name'] );
 				/* translators: %s: language name. */
-				$add_label = sprintf( __( 'Add %s translation', 'openlingua' ), $language['name'] );
+				$add_label = sprintf( __( 'Add %s translation', 'sysopenlang' ), $language['name'] );
 				$label = $target ? $edit_label : $add_label;
 				echo '<td class="column-language"><button type="button" class="openlingua-taxonomy-action" data-openlingua-taxonomy-edit data-term="' . esc_attr( wp_json_encode( $payload ) ) . '" aria-label="' . esc_attr( $label ) . '" title="' . esc_attr( $label ) . '"><span class="dashicons ' . ( $target ? 'dashicons-edit' : 'dashicons-plus-alt2' ) . '" aria-hidden="true"></span></button></td>';
 			}
@@ -488,13 +488,13 @@ final class Taxonomies {
 	}
 
 	private static function modal( $return_to ) {
-		echo '<div class="openlingua-taxonomy-modal" data-openlingua-taxonomy-modal hidden><div class="openlingua-taxonomy-modal__backdrop" data-openlingua-taxonomy-close></div><section class="openlingua-taxonomy-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="openlingua-taxonomy-modal-title"><header><div><small>' . esc_html__( 'Taxonomy translation', 'openlingua' ) . '</small><h2 id="openlingua-taxonomy-modal-title" data-openlingua-taxonomy-title></h2></div><button type="button" class="button-link" data-openlingua-taxonomy-close aria-label="' . esc_attr__( 'Close', 'openlingua' ) . '"><span class="dashicons dashicons-no-alt"></span></button></header><form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="openlingua_save_term_translation"><input type="hidden" name="source_id"><input type="hidden" name="target_id"><input type="hidden" name="taxonomy"><input type="hidden" name="language"><input type="hidden" name="return_to" value="' . esc_attr( $return_to ) . '">';
+		echo '<div class="openlingua-taxonomy-modal" data-openlingua-taxonomy-modal hidden><div class="openlingua-taxonomy-modal__backdrop" data-openlingua-taxonomy-close></div><section class="openlingua-taxonomy-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="openlingua-taxonomy-modal-title"><header><div><small>' . esc_html__( 'Taxonomy translation', 'sysopenlang' ) . '</small><h2 id="openlingua-taxonomy-modal-title" data-openlingua-taxonomy-title></h2></div><button type="button" class="button-link" data-openlingua-taxonomy-close aria-label="' . esc_attr__( 'Close', 'sysopenlang' ) . '"><span class="dashicons dashicons-no-alt"></span></button></header><form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="openlingua_save_term_translation"><input type="hidden" name="source_id"><input type="hidden" name="target_id"><input type="hidden" name="taxonomy"><input type="hidden" name="language"><input type="hidden" name="return_to" value="' . esc_attr( $return_to ) . '">';
 		wp_nonce_field( 'openlingua_save_term_translation', 'openlingua_taxonomy_nonce' );
-		echo '<div class="openlingua-taxonomy-modal__body"><p class="openlingua-taxonomy-modal__source"><span>' . esc_html__( 'Original', 'openlingua' ) . '</span><strong data-openlingua-taxonomy-source></strong></p><label>' . esc_html__( 'Name', 'openlingua' ) . '<input type="text" name="name" required></label><label>' . esc_html__( 'URL slug', 'openlingua' ) . '<input type="text" name="slug"><small data-openlingua-taxonomy-url></small></label><label>' . esc_html__( 'Description', 'openlingua' ) . '<textarea name="description" rows="6"></textarea></label><div class="openlingua-taxonomy-modal__seo" data-openlingua-taxonomy-seo hidden><h3>' . esc_html__( 'SEO metadata', 'openlingua' ) . '</h3><div data-openlingua-taxonomy-seo-fields></div></div></div><footer><button type="button" class="button" data-openlingua-taxonomy-close>' . esc_html__( 'Cancel', 'openlingua' ) . '</button><button type="submit" class="button button-primary">' . esc_html__( 'Save translation', 'openlingua' ) . '</button></footer></form></section></div>';
+		echo '<div class="openlingua-taxonomy-modal__body"><p class="openlingua-taxonomy-modal__source"><span>' . esc_html__( 'Original', 'sysopenlang' ) . '</span><strong data-openlingua-taxonomy-source></strong></p><label>' . esc_html__( 'Name', 'sysopenlang' ) . '<input type="text" name="name" required></label><label>' . esc_html__( 'URL slug', 'sysopenlang' ) . '<input type="text" name="slug"><small data-openlingua-taxonomy-url></small></label><label>' . esc_html__( 'Description', 'sysopenlang' ) . '<textarea name="description" rows="6"></textarea></label><div class="openlingua-taxonomy-modal__seo" data-openlingua-taxonomy-seo hidden><h3>' . esc_html__( 'SEO metadata', 'sysopenlang' ) . '</h3><div data-openlingua-taxonomy-seo-fields></div></div></div><footer><button type="button" class="button" data-openlingua-taxonomy-close>' . esc_html__( 'Cancel', 'sysopenlang' ) . '</button><button type="submit" class="button button-primary">' . esc_html__( 'Save translation', 'sysopenlang' ) . '</button></footer></form></section></div>';
 	}
 
 	public static function save_translation() {
-		if ( ! isset( $_POST['openlingua_taxonomy_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['openlingua_taxonomy_nonce'] ) ), 'openlingua_save_term_translation' ) ) { wp_die( esc_html__( 'Invalid request.', 'openlingua' ) ); }
+		if ( ! isset( $_POST['openlingua_taxonomy_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['openlingua_taxonomy_nonce'] ) ), 'openlingua_save_term_translation' ) ) { wp_die( esc_html__( 'Invalid request.', 'sysopenlang' ) ); }
 		$source_id = absint( $_POST['source_id'] ?? 0 );
 		$target_id = absint( $_POST['target_id'] ?? 0 );
 		$taxonomy = sanitize_key( wp_unslash( $_POST['taxonomy'] ?? '' ) );
@@ -504,7 +504,7 @@ final class Taxonomies {
 		$description = sanitize_textarea_field( wp_unslash( $_POST['description'] ?? '' ) );
 		$tax = get_taxonomy( $taxonomy );
 		$source = get_term( $source_id, $taxonomy );
-		if ( ! $tax || ! $source || is_wp_error( $source ) || ! Languages::is_valid( $language ) || ! current_user_can( $tax->cap->manage_terms ) || '' === $name ) { wp_die( esc_html__( 'You cannot save this taxonomy translation.', 'openlingua' ) ); }
+		if ( ! $tax || ! $source || is_wp_error( $source ) || ! Languages::is_valid( $language ) || ! current_user_can( $tax->cap->manage_terms ) || '' === $name ) { wp_die( esc_html__( 'You cannot save this taxonomy translation.', 'sysopenlang' ) ); }
 		$row = Translations::row( 'term', $source_id );
 		$group = $row ? $row->group_uuid : Translations::assign( 'term', $source_id, Languages::default_code() );
 		$existing = Translations::translated_id( 'term', $source_id, $language );
@@ -576,7 +576,7 @@ final class Taxonomies {
 		$language = isset( $_GET['openlingua_language'] ) ? sanitize_key( wp_unslash( $_GET['openlingua_language'] ) ) : ( Languages::is_valid( $admin_language ) ? $admin_language : Languages::default_code() ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$source   = isset( $_GET['openlingua_source_term'] ) ? absint( $_GET['openlingua_source_term'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		wp_nonce_field( 'openlingua_save_term', 'openlingua_term_nonce' );
-		echo '<div class="form-field"><label for="openlingua-term-language">' . esc_html__( 'Language', 'openlingua' ) . '</label>';
+		echo '<div class="form-field"><label for="openlingua-term-language">' . esc_html__( 'Language', 'sysopenlang' ) . '</label>';
 		self::select( $language );
 		if ( $source ) { echo '<input type="hidden" name="openlingua_source_term" value="' . absint( $source ) . '">'; }
 		echo '</div>';
@@ -588,11 +588,11 @@ final class Taxonomies {
 		$group   = Translations::group( 'term', $term->term_id );
 		$original_id = $current === Languages::default_code() ? 0 : absint( $group[ Languages::default_code() ] ?? 0 );
 		wp_nonce_field( 'openlingua_save_term', 'openlingua_term_nonce' );
-		echo '<tr class="form-field"><th><label for="openlingua-term-language">' . esc_html__( 'Language', 'openlingua' ) . '</label></th><td>';
+		echo '<tr class="form-field"><th><label for="openlingua-term-language">' . esc_html__( 'Language', 'sysopenlang' ) . '</label></th><td>';
 		self::select( $current );
 		if ( $current !== Languages::default_code() ) {
 			$originals = self::available_original_terms( $taxonomy, $current, $term->term_id );
-			echo '<p><label for="openlingua-source-term"><strong>' . esc_html__( 'Original term', 'openlingua' ) . '</strong></label><br><select id="openlingua-source-term" name="openlingua_source_term"><option value="0">' . esc_html__( 'Not linked yet', 'openlingua' ) . '</option>';
+			echo '<p><label for="openlingua-source-term"><strong>' . esc_html__( 'Original term', 'sysopenlang' ) . '</strong></label><br><select id="openlingua-source-term" name="openlingua_source_term"><option value="0">' . esc_html__( 'Not linked yet', 'sysopenlang' ) . '</option>';
 			// available_original_terms() correctly omits originals that already have
 			// this translation. Add the current relation back so the selector reflects
 			// an existing link instead of misleadingly showing "Not linked yet".
@@ -604,17 +604,17 @@ final class Taxonomies {
 				if ( $linked_original && absint( $linked_original->term_id ) === absint( $original->term_id ) ) { continue; }
 				echo '<option value="' . absint( $original->term_id ) . '" ' . selected( $original_id, $original->term_id, false ) . '>' . esc_html( $original->name . ' (/' . $original->slug . '/)' ) . '</option>';
 			}
-			echo '</select></p><p class="description">' . esc_html__( 'Use this only to link an existing term that already means the same thing in another language. OpenLingua never guesses this relationship from a name or slug.', 'openlingua' ) . '</p>';
+			echo '</select></p><p class="description">' . esc_html__( 'Use this only to link an existing term that already means the same thing in another language. SysOpenLang never guesses this relationship from a name or slug.', 'sysopenlang' ) . '</p>';
 		}
-		echo '<p class="description">' . esc_html__( 'Translations of this term:', 'openlingua' ) . '</p><ul>';
+		echo '<p class="description">' . esc_html__( 'Translations of this term:', 'sysopenlang' ) . '</p><ul>';
 		foreach ( Languages::all() as $code => $language ) {
 			if ( $code === $current ) { continue; }
 			if ( isset( $group[ $code ] ) ) {
 				$url = get_edit_term_link( $group[ $code ], $taxonomy );
-				echo '<li>' . esc_html( $language['name'] ) . ': <a href="' . esc_url( $url ) . '">' . esc_html__( 'Edit', 'openlingua' ) . '</a></li>';
+				echo '<li>' . esc_html( $language['name'] ) . ': <a href="' . esc_url( $url ) . '">' . esc_html__( 'Edit', 'sysopenlang' ) . '</a></li>';
 			} else {
 				$url = wp_nonce_url( add_query_arg( array( 'action' => 'openlingua_duplicate_term', 'term_id' => $term->term_id, 'taxonomy' => $taxonomy, 'language' => $code ), admin_url( 'admin-post.php' ) ), 'openlingua_duplicate_term_' . $term->term_id );
-				echo '<li>' . esc_html( $language['name'] ) . ': <a href="' . esc_url( $url ) . '">+ ' . esc_html__( 'Create', 'openlingua' ) . '</a></li>';
+				echo '<li>' . esc_html( $language['name'] ) . ': <a href="' . esc_url( $url ) . '">+ ' . esc_html__( 'Create', 'sysopenlang' ) . '</a></li>';
 			}
 		}
 		echo '</ul></td></tr>';
@@ -661,12 +661,12 @@ final class Taxonomies {
 			$translation_id = absint( $group[ $code ] );
 			$url   = get_edit_term_link( $translation_id, $term->taxonomy );
 			/* translators: %s: language name. */
-			$label = sprintf( __( 'Edit %s translation', 'openlingua' ), $name );
+			$label = sprintf( __( 'Edit %s translation', 'sysopenlang' ), $name );
 			$icon  = 'dashicons-edit';
 		} else {
 			$url = wp_nonce_url( add_query_arg( array( 'action' => 'openlingua_duplicate_term', 'term_id' => $term_id, 'taxonomy' => $term->taxonomy, 'language' => $code ), admin_url( 'admin-post.php' ) ), 'openlingua_duplicate_term_' . $term_id );
 			/* translators: %s: language name. */
-			$label = sprintf( __( 'Add %s translation', 'openlingua' ), $name );
+			$label = sprintf( __( 'Add %s translation', 'sysopenlang' ), $name );
 			$icon  = 'dashicons-plus-alt2';
 		}
 		if ( ! $url ) { return $content; }
@@ -674,7 +674,7 @@ final class Taxonomies {
 		if ( isset( $translation_id ) ) {
 			$view_url = get_term_link( $translation_id, $term->taxonomy );
 			/* translators: %s: language name. */
-			$view_label = sprintf( __( 'View %s translation', 'openlingua' ), $name );
+			$view_label = sprintf( __( 'View %s translation', 'sysopenlang' ), $name );
 			if ( ! is_wp_error( $view_url ) ) { $output .= '<a class="openlingua-translation-action" href="' . esc_url( $view_url ) . '" target="_blank" rel="noopener noreferrer" title="' . esc_attr( $view_label ) . '" aria-label="' . esc_attr( $view_label ) . '"><span class="dashicons dashicons-visibility" aria-hidden="true"></span></a>'; }
 		}
 		return $output . '</span>';
@@ -701,10 +701,10 @@ final class Taxonomies {
 		check_admin_referer( 'openlingua_duplicate_term_' . $term_id );
 		$tax = get_taxonomy( $taxonomy );
 		if ( ! $term_id || ! $tax || ! Languages::is_valid( $language ) || ! current_user_can( $tax->cap->manage_terms ) ) {
-			wp_die( esc_html__( 'You cannot create this term translation.', 'openlingua' ) );
+			wp_die( esc_html__( 'You cannot create this term translation.', 'sysopenlang' ) );
 		}
 		$source = get_term( $term_id, $taxonomy );
-		if ( ! $source || is_wp_error( $source ) ) { wp_die( esc_html__( 'Source term not found.', 'openlingua' ) ); }
+		if ( ! $source || is_wp_error( $source ) ) { wp_die( esc_html__( 'Source term not found.', 'sysopenlang' ) ); }
 		$row = Translations::row( 'term', $term_id );
 		if ( ! $row ) { $group = Translations::assign( 'term', $term_id, Languages::default_code() ); } else { $group = $row->group_uuid; }
 		$existing = Translations::translated_id( 'term', $term_id, $language );

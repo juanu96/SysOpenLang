@@ -23,7 +23,7 @@ function get_post_type_object( $post_type ) {
 	return in_array( $post_type, array( 'post', 'listing' ), true ) ? (object) array( 'public' => true ) : (object) array( 'public' => false );
 }
 
-final class OpenLingua_Test_Query {
+final class SysOpenLang_Test_Query {
 	private $vars;
 	private $main;
 	private $attachment;
@@ -44,34 +44,34 @@ function openlingua_content_assert_same( $expected, $actual, $message ) {
 	echo "PASS: {$message}\n";
 }
 
-\OpenLingua\Languages::set_current( 'es' );
-$query = new OpenLingua_Test_Query( array( 'post_type' => 'listing' ) );
-\OpenLingua\Content::mark_frontend_query_language( $query );
+\SysOpenLang\Languages::set_current( 'es' );
+$query = new SysOpenLang_Test_Query( array( 'post_type' => 'listing' ) );
+\SysOpenLang\Content::mark_frontend_query_language( $query );
 openlingua_content_assert_same( 'es', $query->get( 'openlingua_language' ), 'marks a third-party secondary CPT query with the current language' );
 
 $_SERVER['HTTP_REFERER'] = 'https://example.test/en/blog/';
-$prefetched_query = new OpenLingua_Test_Query( array( 'post_type' => 'listing' ) );
-\OpenLingua\Content::mark_frontend_query_language( $prefetched_query );
+$prefetched_query = new SysOpenLang_Test_Query( array( 'post_type' => 'listing' ) );
+\SysOpenLang\Content::mark_frontend_query_language( $prefetched_query );
 openlingua_content_assert_same( 'es', $prefetched_query->get( 'openlingua_language' ), 'uses the requested URL language instead of a prefetch referer on normal frontend queries' );
 unset( $_SERVER['HTTP_REFERER'] );
 
-$attachment_query = new OpenLingua_Test_Query( array( 'post_type' => 'attachment' ) );
-\OpenLingua\Content::mark_frontend_query_language( $attachment_query );
+$attachment_query = new SysOpenLang_Test_Query( array( 'post_type' => 'attachment' ) );
+\SysOpenLang\Content::mark_frontend_query_language( $attachment_query );
 openlingua_content_assert_same( '', $attachment_query->get( 'openlingua_language' ), 'keeps shared attachment queries unfiltered' );
 
-$divi_layout_query = new OpenLingua_Test_Query( array( 'post_type' => 'et_body_layout' ) );
-\OpenLingua\Content::mark_frontend_query_language( $divi_layout_query );
+$divi_layout_query = new SysOpenLang_Test_Query( array( 'post_type' => 'et_body_layout' ) );
+\SysOpenLang\Content::mark_frontend_query_language( $divi_layout_query );
 openlingua_content_assert_same( '', $divi_layout_query->get( 'openlingua_language' ), 'keeps non-public Divi Theme Builder layouts unfiltered' );
 
-$suppressed_query = new OpenLingua_Test_Query( array( 'post_type' => 'post', 'suppress_filters' => true ) );
-\OpenLingua\Content::mark_frontend_query_language( $suppressed_query );
+$suppressed_query = new SysOpenLang_Test_Query( array( 'post_type' => 'post', 'suppress_filters' => true ) );
+\SysOpenLang\Content::mark_frontend_query_language( $suppressed_query );
 openlingua_content_assert_same( '', $suppressed_query->get( 'openlingua_language' ), 'respects a query that explicitly suppresses filters' );
 
 $openlingua_test_is_admin = true;
 $openlingua_test_is_ajax = true;
 $_SERVER['HTTP_REFERER'] = 'https://example.test/es/news/';
-$ajax_query = new OpenLingua_Test_Query( array( 'post_type' => 'post' ) );
-\OpenLingua\Content::mark_frontend_query_language( $ajax_query );
+$ajax_query = new SysOpenLang_Test_Query( array( 'post_type' => 'post' ) );
+\SysOpenLang\Content::mark_frontend_query_language( $ajax_query );
 openlingua_content_assert_same( 'es', $ajax_query->get( 'openlingua_language' ), 'uses the referring language URL for an AJAX content query' );
 
-echo "All OpenLingua content-query tests passed.\n";
+echo "All SysOpenLang content-query tests passed.\n";

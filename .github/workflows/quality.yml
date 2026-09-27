@@ -29,7 +29,7 @@ jobs:
 
       - name: Lint production PHP
         shell: bash
-        run: find src -name '*.php' -print0 | xargs -0 -n1 php -l && php -l openlingua.php && php -l uninstall.php
+        run: find src -name '*.php' -print0 | xargs -0 -n1 php -l && php -l sysopenlang.php && php -l uninstall.php
 
       - name: Download WordPress parser fixture
         shell: bash
@@ -38,7 +38,7 @@ jobs:
       - name: Run regression tests
         run: php tools/run-tests.php
         env:
-          OPENLINGUA_WP_ROOT: /tmp/wordpress
+          SYSOPENLANG_WP_ROOT: /tmp/wordpress
 
   distributable:
     name: Build and Plugin Check
@@ -60,17 +60,17 @@ jobs:
         shell: bash
         run: |
           mkdir -p build
-          unzip -q openlingua-*.zip -d build
+          unzip -q sysopenlang.zip -d build
 
       - name: Run official Plugin Check
         uses: wordpress/plugin-check-action@v1
         with:
-          build-dir: build/openlingua
+          build-dir: build/sysopenlang
           ignore-warnings: true
 
       - name: Upload installable ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: openlingua-installable
-          path: openlingua-*.zip
+          name: sysopenlang-installable
+          path: sysopenlang.zip
           if-no-files-found: error

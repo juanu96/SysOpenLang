@@ -1,9 +1,9 @@
 <?php
-namespace OpenLingua;
+namespace SysOpenLang;
 
 defined( 'ABSPATH' ) || exit;
 
-/** Integrates OpenLingua translations with Divi Theme Builder layouts. */
+/** Integrates SysOpenLang translations with Divi Theme Builder layouts. */
 final class Divi_Theme_Builder {
 	private static $layout_types = array(
 		'header' => 'et_header_layout',
@@ -12,7 +12,7 @@ final class Divi_Theme_Builder {
 	);
 
 	public static function hooks() {
-		// Register after OpenLingua's top-level page so WordPress keeps the main settings submenu intact.
+		// Register after SysOpenLang's top-level page so WordPress keeps the main settings submenu intact.
 		add_action( 'admin_menu', array( __CLASS__, 'admin_menu' ), 20 );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'assets' ) );
 		add_filter( 'et_theme_builder_template_layouts', array( __CLASS__, 'translate_template_layouts' ), 20 );
@@ -30,45 +30,45 @@ final class Divi_Theme_Builder {
 
 	public static function admin_menu() {
 		if ( ! self::available() ) { return; }
-		add_submenu_page( 'openlingua', __( 'Divi Theme Builder translations', 'openlingua' ), __( 'Divi Theme Builder', 'openlingua' ), 'manage_options', 'openlingua-divi-theme-builder', array( __CLASS__, 'page' ) );
+		add_submenu_page( 'openlingua', __( 'Divi Theme Builder translations', 'sysopenlang' ), __( 'Divi Theme Builder', 'sysopenlang' ), 'manage_options', 'openlingua-divi-theme-builder', array( __CLASS__, 'page' ) );
 	}
 
 	public static function assets( $hook ) {
-		if ( 'openlingua_page_openlingua-divi-theme-builder' !== $hook ) { return; }
-		wp_enqueue_style( 'openlingua-admin-translations', plugins_url( 'assets/admin-translations.css', OPENLINGUA_FILE ), array( 'dashicons' ), OPENLINGUA_VERSION );
-		wp_enqueue_style( 'openlingua-divi-theme-builder', plugins_url( 'assets/admin-divi-theme-builder.css', OPENLINGUA_FILE ), array( 'openlingua-admin-translations' ), OPENLINGUA_VERSION );
-		wp_enqueue_script( 'openlingua-admin-translations', plugins_url( 'assets/admin-translations.js', OPENLINGUA_FILE ), array(), OPENLINGUA_VERSION, true );
+		if ( ! in_array( $hook, array( 'openlingua_page_openlingua-divi-theme-builder', 'sysopenlang_page_openlingua-divi-theme-builder' ), true ) ) { return; }
+		wp_enqueue_style( 'openlingua-admin-translations', plugins_url( 'assets/admin-translations.css', SYSOPENLANG_FILE ), array( 'dashicons' ), SYSOPENLANG_VERSION );
+		wp_enqueue_style( 'openlingua-divi-theme-builder', plugins_url( 'assets/admin-divi-theme-builder.css', SYSOPENLANG_FILE ), array( 'openlingua-admin-translations' ), SYSOPENLANG_VERSION );
+		wp_enqueue_script( 'openlingua-admin-translations', plugins_url( 'assets/admin-translations.js', SYSOPENLANG_FILE ), array(), SYSOPENLANG_VERSION, true );
 	}
 
 	public static function page() {
 		if ( ! current_user_can( 'manage_options' ) ) { return; }
-		echo '<div class="wrap openlingua-divi-tb"><h1>' . esc_html__( 'Divi Theme Builder translations', 'openlingua' ) . '</h1>';
+		echo '<div class="wrap openlingua-divi-tb"><h1>' . esc_html__( 'Divi Theme Builder translations', 'sysopenlang' ) . '</h1>';
 		if ( ! self::available() ) {
-			echo '<div class="notice notice-warning"><p>' . esc_html__( 'Divi Theme Builder is not available.', 'openlingua' ) . '</p></div></div>';
+			echo '<div class="notice notice-warning"><p>' . esc_html__( 'Divi Theme Builder is not available.', 'sysopenlang' ) . '</p></div></div>';
 			return;
 		}
 		$rows = self::rows_from_templates( et_theme_builder_get_theme_builder_templates( true ) );
-		echo '<p>' . esc_html__( 'Keep layout design and display conditions in Divi. Translate the textual content of each header, body and footer here.', 'openlingua' ) . '</p>';
-		echo '<p><a class="button" href="' . esc_url( admin_url( 'admin.php?page=et_theme_builder' ) ) . '"><span class="dashicons dashicons-admin-customizer" aria-hidden="true"></span>' . esc_html__( 'Open Divi Theme Builder', 'openlingua' ) . '</a></p>';
+		echo '<p>' . esc_html__( 'Keep layout design and display conditions in Divi. Translate the textual content of each header, body and footer here.', 'sysopenlang' ) . '</p>';
+		echo '<p><a class="button" href="' . esc_url( admin_url( 'admin.php?page=et_theme_builder' ) ) . '"><span class="dashicons dashicons-admin-customizer" aria-hidden="true"></span>' . esc_html__( 'Open Divi Theme Builder', 'sysopenlang' ) . '</a></p>';
 		if ( ! $rows ) {
-			echo '<div class="notice notice-info inline"><p>' . esc_html__( 'No custom Divi Theme Builder layouts were found.', 'openlingua' ) . '</p></div></div>';
+			echo '<div class="notice notice-info inline"><p>' . esc_html__( 'No custom Divi Theme Builder layouts were found.', 'sysopenlang' ) . '</p></div></div>';
 			return;
 		}
 		$languages = Languages::all();
-		echo '<table class="widefat striped openlingua-divi-tb__table"><thead><tr><th>' . esc_html__( 'Divi template', 'openlingua' ) . '</th><th>' . esc_html__( 'Section', 'openlingua' ) . '</th>';
+		echo '<table class="widefat striped openlingua-divi-tb__table"><thead><tr><th>' . esc_html__( 'Divi template', 'sysopenlang' ) . '</th><th>' . esc_html__( 'Section', 'sysopenlang' ) . '</th>';
 		foreach ( $languages as $language ) { echo '<th><span class="openlingua-column-language"><span aria-hidden="true">' . esc_html( $language['flag'] ?? '🌐' ) . '</span> ' . esc_html( $language['name'] ) . '</span></th>'; }
 		echo '</tr></thead><tbody>';
 		foreach ( $rows as $row ) { self::render_row( $row, $languages ); }
-		echo '</tbody></table><p class="description">' . esc_html__( 'Dynamic Post Content modules remain connected to the translated page or post and are not duplicated as static text.', 'openlingua' ) . '</p></div>';
+		echo '</tbody></table><p class="description">' . esc_html__( 'Dynamic Post Content modules remain connected to the translated page or post and are not duplicated as static text.', 'sysopenlang' ) . '</p></div>';
 	}
 
 	public static function rows_from_templates( array $templates ) {
 		$rows = array();
 		foreach ( $templates as $template ) {
 			$template_id = absint( $template['id'] ?? 0 );
-			$template_name = ! empty( $template['default'] ) ? __( 'Default Website Template', 'openlingua' ) : trim( (string) ( $template['title'] ?? '' ) );
+			$template_name = ! empty( $template['default'] ) ? __( 'Default Website Template', 'sysopenlang' ) : trim( (string) ( $template['title'] ?? '' ) );
 			/* translators: %d: Divi template ID. */
-			if ( '' === $template_name ) { $template_name = sprintf( __( 'Template #%d', 'openlingua' ), $template_id ); }
+			if ( '' === $template_name ) { $template_name = sprintf( __( 'Template #%d', 'sysopenlang' ), $template_id ); }
 			foreach ( self::$layout_types as $kind => $post_type ) {
 				$layout = $template['layouts'][ $kind ] ?? array();
 				$layout_id = absint( $layout['id'] ?? 0 );
@@ -88,36 +88,36 @@ final class Divi_Theme_Builder {
 		$row = Translations::row( 'post', $post->ID );
 		$source_language = $row ? $row->language : Languages::default_code();
 		$group = $row ? Translations::group( 'post', $post->ID ) : array( $source_language => $post->ID );
-		$section_names = array( 'header' => __( 'Header', 'openlingua' ), 'body' => __( 'Body', 'openlingua' ), 'footer' => __( 'Footer', 'openlingua' ) );
+		$section_names = array( 'header' => __( 'Header', 'sysopenlang' ), 'body' => __( 'Body', 'sysopenlang' ), 'footer' => __( 'Footer', 'sysopenlang' ) );
 		$return_url = admin_url( 'admin.php?page=openlingua-divi-theme-builder' );
 		echo '<tr><td><strong>' . esc_html( implode( ', ', array_unique( $layout['contexts'] ) ) ) . '</strong><br><small>' . esc_html( get_the_title( $post ) ?: sprintf( '#%d', $post->ID ) ) . '</small></td>';
-		echo '<td><span class="dashicons dashicons-' . ( 'header' === $layout['kind'] ? 'align-wide' : ( 'footer' === $layout['kind'] ? 'align-center' : 'layout' ) ) . '" aria-hidden="true"></span> ' . esc_html( $section_names[ $layout['kind'] ] ) . ( $layout['global'] ? ' <span class="openlingua-divi-tb__global">' . esc_html__( 'Global', 'openlingua' ) . '</span>' : '' ) . ( ! $layout['enabled'] ? ' <span class="openlingua-divi-tb__disabled">' . esc_html__( 'Disabled', 'openlingua' ) . '</span>' : '' ) . '</td>';
+		echo '<td><span class="dashicons dashicons-' . ( 'header' === $layout['kind'] ? 'align-wide' : ( 'footer' === $layout['kind'] ? 'align-center' : 'layout' ) ) . '" aria-hidden="true"></span> ' . esc_html( $section_names[ $layout['kind'] ] ) . ( $layout['global'] ? ' <span class="openlingua-divi-tb__global">' . esc_html__( 'Global', 'sysopenlang' ) . '</span>' : '' ) . ( ! $layout['enabled'] ? ' <span class="openlingua-divi-tb__disabled">' . esc_html__( 'Disabled', 'sysopenlang' ) . '</span>' : '' ) . '</td>';
 		foreach ( $languages as $code => $language ) {
 			echo '<td>';
 			if ( $code === $source_language ) {
 				$edit_url = self::layout_edit_url( $post->ID );
-				echo '<span class="openlingua-divi-tb__original">' . esc_html__( 'Original', 'openlingua' ) . '</span>';
-				if ( $edit_url ) { echo ' <a class="openlingua-translation-action" href="' . esc_url( $edit_url ) . '" title="' . esc_attr__( 'Edit original layout in Divi', 'openlingua' ) . '"><span class="dashicons dashicons-edit" aria-hidden="true"></span></a>'; }
+				echo '<span class="openlingua-divi-tb__original">' . esc_html__( 'Original', 'sysopenlang' ) . '</span>';
+				if ( $edit_url ) { echo ' <a class="openlingua-translation-action" href="' . esc_url( $edit_url ) . '" title="' . esc_attr__( 'Edit original layout in Divi', 'sysopenlang' ) . '"><span class="dashicons dashicons-edit" aria-hidden="true"></span></a>'; }
 			} elseif ( isset( $group[ $code ] ) ) {
 				$translation_id = absint( $group[ $code ] );
 				if ( 'trash' === get_post_status( $translation_id ) ) {
 					/* translators: %s: language name. */
-					$restore_label = sprintf( __( 'Restore %s translation', 'openlingua' ), $language['name'] );
+					$restore_label = sprintf( __( 'Restore %s translation', 'sysopenlang' ), $language['name'] );
 					echo '<a class="openlingua-translation-action" href="' . esc_url( Content::restore_translation_url( $post->ID, $translation_id ) ) . '" title="' . esc_attr( $restore_label ) . '"><span class="dashicons dashicons-undo" aria-hidden="true"></span></a>';
 				} else {
 					$editor_url = Translation_Editor::url( $post->ID, $translation_id, $return_url );
 					/* translators: %s: language name. */
-					$confirmation = sprintf( __( 'Move the %s translation to Trash? The original layout will not be deleted.', 'openlingua' ), $language['name'] );
+					$confirmation = sprintf( __( 'Move the %s translation to Trash? The original layout will not be deleted.', 'sysopenlang' ), $language['name'] );
 					/* translators: %s: language name. */
-					$edit_label = sprintf( __( 'Edit %s translation', 'openlingua' ), $language['name'] );
+					$edit_label = sprintf( __( 'Edit %s translation', 'sysopenlang' ), $language['name'] );
 					/* translators: %s: language name. */
-					$trash_label = sprintf( __( 'Move %s translation to Trash', 'openlingua' ), $language['name'] );
+					$trash_label = sprintf( __( 'Move %s translation to Trash', 'sysopenlang' ), $language['name'] );
 					echo '<span class="openlingua-translation-links"><a class="openlingua-translation-action" href="' . esc_url( $editor_url ) . '" title="' . esc_attr( $edit_label ) . '"><span class="dashicons dashicons-edit" aria-hidden="true"></span></a><a class="openlingua-translation-action openlingua-translation-action--delete" href="' . esc_url( Content::delete_translation_url( $post->ID, $translation_id, $return_url ) ) . '" data-openlingua-confirm="' . esc_attr( $confirmation ) . '" title="' . esc_attr( $trash_label ) . '"><span class="dashicons dashicons-trash" aria-hidden="true"></span></a></span>';
 				}
 			} else {
 				$url = wp_nonce_url( add_query_arg( array( 'action' => 'openlingua_duplicate', 'post_id' => $post->ID, 'language' => $code, 'redirect_to' => $return_url ), admin_url( 'admin-post.php' ) ), 'openlingua_duplicate_' . $post->ID );
 				/* translators: %s: language name. */
-				$add_label = sprintf( __( 'Add %s translation', 'openlingua' ), $language['name'] );
+				$add_label = sprintf( __( 'Add %s translation', 'sysopenlang' ), $language['name'] );
 				echo '<a class="openlingua-translation-action" href="' . esc_url( $url ) . '" title="' . esc_attr( $add_label ) . '"><span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span></a>';
 			}
 			echo '</td>';

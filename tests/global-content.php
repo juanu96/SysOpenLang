@@ -8,7 +8,7 @@ namespace {
 	function _build_block_template_result_from_post( $post ) { return (object) array( 'wp_id' => $post->ID, 'translated' => true ); }
 }
 
-namespace OpenLingua {
+namespace SysOpenLang {
 	final class Languages {
 		public static $current = 'es';
 		public static function current() { return self::$current; }
@@ -40,5 +40,5 @@ namespace OpenLingua {
 	global_content_assert( $source === Global_Content::translate_template( $source, 'theme//index', 'wp_template' ), 'keeps the source template in the default language' );
 	global_content_assert( $source === Global_Content::translate_template( $source, 'theme//index', 'other_type' ), 'ignores unrelated template types' );
 
-	echo "All OpenLingua global content tests passed.\n";
+	echo "All SysOpenLang global content tests passed.\n";
 }

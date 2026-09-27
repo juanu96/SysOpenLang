@@ -28,7 +28,7 @@ namespace {
 	}
 }
 
-namespace OpenLingua {
+namespace SysOpenLang {
 	final class Translations {
 		public static function translated_id( $type, $id, $language ) {
 			$map = array( 10 => 20, 30 => 40, 50 => 60 );
@@ -38,7 +38,7 @@ namespace OpenLingua {
 	}
 }
 
-namespace OpenLingua\Modules {
+namespace SysOpenLang\Modules {
 	require dirname( __DIR__ ) . '/src/contracts/interface-module.php';
 	require dirname( __DIR__ ) . '/src/modules/class-commerce.php';
 	function commerce_assert( $condition, $message ) { if ( ! $condition ) { fwrite( STDERR, "FAIL: {$message}.\n" ); exit( 1 ); } }

@@ -1,23 +1,23 @@
 <?php
-namespace OpenLingua;
+namespace SysOpenLang;
 
 defined( 'ABSPATH' ) || exit;
 
 /** Optional WPGraphQL compatibility. */
 final class GraphQL {
-	const LANGUAGE_ARG = 'openlinguaLanguage';
+	const LANGUAGE_ARG = 'sysopenlangLanguage';
 
 	public static function hooks() {
 		add_action( 'graphql_register_types', array( __CLASS__, 'register_language_arguments' ) );
 		add_filter( 'graphql_post_object_connection_query_args', array( __CLASS__, 'filter_post_query_args' ), 10, 5 );
 		add_filter( 'graphql_term_object_connection_query_args', array( __CLASS__, 'filter_term_query_args' ), 10, 5 );
 		// WPGraphQL sets suppress_filter on term connections. Apply the explicitly
-		// requested OpenLingua language after its query arguments are assembled.
+		// requested SysOpenLang language after its query arguments are assembled.
 		add_filter( 'terms_clauses', array( __CLASS__, 'filter_term_clauses' ), 11, 3 );
 		add_filter( 'graphql_resolve_field', array( __CLASS__, 'fallback_empty_property_id' ), 10, 9 );
 	}
 
-	/** Adds `where: { openlinguaLanguage: "es" }` to root and native taxonomy connections. */
+	/** Adds `where: { sysopenlangLanguage: "es" }` to root and native taxonomy connections. */
 	public static function register_language_arguments() {
 		if ( ! function_exists( 'register_graphql_field' ) ) { return; }
 		$post_types = get_post_types( array( 'show_in_graphql' => true ), 'objects' );
@@ -28,7 +28,7 @@ final class GraphQL {
 			$type_name = 'RootQueryTo' . ucfirst( $single ) . 'ConnectionWhereArgs';
 			register_graphql_field( $type_name, self::LANGUAGE_ARG, array(
 				'type'        => 'String',
-				'description' => __( 'Limit content to an OpenLingua language code.', 'openlingua' ),
+				'description' => __( 'Limit content to an SysOpenLang language code.', 'sysopenlang' ),
 			) );
 		}
 		foreach ( $taxonomies as $taxonomy ) {
@@ -37,7 +37,7 @@ final class GraphQL {
 			$type_name = 'RootQueryTo' . ucfirst( $single ) . 'ConnectionWhereArgs';
 			register_graphql_field( $type_name, self::LANGUAGE_ARG, array(
 				'type'        => 'String',
-				'description' => __( 'Limit taxonomy terms to an OpenLingua language code.', 'openlingua' ),
+				'description' => __( 'Limit taxonomy terms to an SysOpenLang language code.', 'sysopenlang' ),
 			) );
 		}
 
@@ -55,7 +55,7 @@ final class GraphQL {
 				if ( ! $post_type_name || 'attachment' === $post_type->name ) { continue; }
 				register_graphql_connection_where_arg( ucfirst( $post_type_name ), ucfirst( $taxonomy_type ), self::LANGUAGE_ARG, array(
 					'type'        => 'String',
-					'description' => __( 'Limit taxonomy terms to an OpenLingua language code.', 'openlingua' ),
+					'description' => __( 'Limit taxonomy terms to an SysOpenLang language code.', 'sysopenlang' ),
 				) );
 			}
 		}
@@ -86,11 +86,11 @@ final class GraphQL {
 		// For `listing { statusListings { ... } }` and every other connected
 		// taxonomy field, the post is already the language decision. Asking the
 		// global term registry to filter it again breaks terms created by plugins
-		// or imported before OpenLingua normalized their term groups.
+		// or imported before SysOpenLang normalized their term groups.
 		if ( self::source_post_id( $source ) || self::is_post_type_connection( $info ) ) {
 			$query_args['openlingua_skip_language_filter'] = true;
 			// WPGraphQL itself recognizes this query var. It also ensures the
-			// standard OpenLingua term hook does not infer a request-wide language
+			// standard SysOpenLang term hook does not infer a request-wide language
 			// for an already post-scoped connection.
 			$query_args['suppress_filter'] = true;
 			return $query_args;
@@ -101,7 +101,7 @@ final class GraphQL {
 		return $query_args;
 	}
 
-	/** Limits only term queries explicitly marked by OpenLingua's WPGraphQL connection filter. */
+	/** Limits only term queries explicitly marked by SysOpenLang's WPGraphQL connection filter. */
 	public static function filter_term_clauses( $clauses, $taxonomies, $args ) {
 		unset( $taxonomies );
 		if ( ! empty( $args['openlingua_skip_language_filter'] ) || ! empty( $args['object_ids'] ) || ! empty( $args['object_id'] ) || ! empty( $args['include'] ) ) {
@@ -159,7 +159,7 @@ final class GraphQL {
 	public static function request_language() {
 		$candidates = array(
 			isset( $_GET['lang'] ) ? sanitize_key( wp_unslash( $_GET['lang'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Public GraphQL language hint, validated below.
-			isset( $_SERVER['HTTP_X_OPENLINGUA_LANGUAGE'] ) ? sanitize_key( wp_unslash( $_SERVER['HTTP_X_OPENLINGUA_LANGUAGE'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Public GraphQL request header, validated below.
+			isset( $_SERVER['HTTP_X_SYSOPENLANG_LANGUAGE'] ) ? sanitize_key( wp_unslash( $_SERVER['HTTP_X_SYSOPENLANG_LANGUAGE'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Public GraphQL request header, validated below.
 		);
 		foreach ( $candidates as $candidate ) {
 			$candidate = sanitize_key( wp_unslash( $candidate ) );

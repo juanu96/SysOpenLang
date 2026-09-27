@@ -1,5 +1,5 @@
 <?php
-namespace OpenLingua;
+namespace SysOpenLang;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -82,7 +82,7 @@ final class Translation_Memory {
 			$remember( $source->post_content, $target->post_content, 'html', 'post-content' );
 		}
 		self::learn_segments( ACF_Content::extract( $source_id ), ACF_Content::values( $target_id ), $remember, 'format' );
-		foreach ( \OpenLingua\Modules\Commerce::translation_fields( $source_id, $target_id ) as $field ) { $remember( $field['source'], $field['target'], 'html', $field['id'] ); }
+		foreach ( \SysOpenLang\Modules\Commerce::translation_fields( $source_id, $target_id ) as $field ) { $remember( $field['source'], $field['target'], 'html', $field['id'] ); }
 		foreach ( SEO::translation_fields( $source_id, $target_id ) as $group ) {
 			foreach ( $group['fields'] as $field ) { $remember( $field['source'], $field['target'], 'text', 'seo-' . $field['key'] ); }
 		}

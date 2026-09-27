@@ -22,22 +22,22 @@ function module_assert( $condition, $message ) {
 	echo "PASS: {$message}\n";
 }
 
-class Example_Module implements \OpenLingua\Contracts\Module { public static $booted = false; public static function hooks() { self::$booted = true; } }
+class Example_Module implements \SysOpenLang\Contracts\Module { public static $booted = false; public static function hooks() { self::$booted = true; } }
 class Invalid_Module { public static function hooks() {} }
-class Example_Provider implements \OpenLingua\Contracts\Translation_Provider {
+class Example_Provider implements \SysOpenLang\Contracts\Translation_Provider {
 	public function id() { return 'example'; }
 	public function label() { return 'Example'; }
 	public function is_configured() { return true; }
 	public function translate( array $segments, $source_language, $target_language, array $context = array() ) { return $segments; }
 }
 
-\OpenLingua\Module_Registry::boot( array( Example_Module::class, Invalid_Module::class ) );
+\SysOpenLang\Module_Registry::boot( array( Example_Module::class, Invalid_Module::class ) );
 module_assert( Example_Module::$booted, 'boots valid modules' );
-module_assert( 1 === count( \OpenLingua\Module_Registry::all() ), 'rejects classes that do not implement the module contract' );
-module_assert( \OpenLingua\Modules\Providers::register( new Example_Provider() ), 'registers a valid translation provider' );
-module_assert( null !== \OpenLingua\Modules\Providers::get( 'example' ), 'retrieves a registered translation provider' );
-module_assert( 'translate' === \OpenLingua\Modules\Metadata::policy( 'hero_title', 'page' ), 'resolves a translatable custom-field policy' );
-module_assert( 'copy' === \OpenLingua\Modules\Metadata::policy( '_hero_title', 'page' ), 'copies the ACF field-key reference for a configured field' );
-module_assert( 'ignore' === \OpenLingua\Modules\Metadata::policy( '_openlingua_internal', 'page' ), 'protects internal metadata from duplication' );
+module_assert( 1 === count( \SysOpenLang\Module_Registry::all() ), 'rejects classes that do not implement the module contract' );
+module_assert( \SysOpenLang\Modules\Providers::register( new Example_Provider() ), 'registers a valid translation provider' );
+module_assert( null !== \SysOpenLang\Modules\Providers::get( 'example' ), 'retrieves a registered translation provider' );
+module_assert( 'translate' === \SysOpenLang\Modules\Metadata::policy( 'hero_title', 'page' ), 'resolves a translatable custom-field policy' );
+module_assert( 'copy' === \SysOpenLang\Modules\Metadata::policy( '_hero_title', 'page' ), 'copies the ACF field-key reference for a configured field' );
+module_assert( 'ignore' === \SysOpenLang\Modules\Metadata::policy( '_openlingua_internal', 'page' ), 'protects internal metadata from duplication' );
 
-echo "All OpenLingua module tests passed.\n";
+echo "All SysOpenLang module tests passed.\n";

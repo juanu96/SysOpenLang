@@ -16,7 +16,7 @@ namespace {
 	function apply_filters( $hook, $value ) { return $value; }
 }
 
-namespace OpenLingua {
+namespace SysOpenLang {
 	require dirname( __DIR__ ) . '/src/contracts/interface-content-extractor.php';
 	require dirname( __DIR__ ) . '/src/class-elementor-content.php';
 	function elementor_assert( $condition, $message ) { if ( ! $condition ) { fwrite( STDERR, "FAIL: {$message}.\n" ); exit( 1 ); } }

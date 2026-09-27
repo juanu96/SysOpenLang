@@ -4,7 +4,7 @@ namespace {
 	function sanitize_title( $value ) { return trim( preg_replace( '/[^a-z0-9]+/', '-', strtolower( $value ) ), '-' ); }
 }
 
-namespace OpenLingua {
+namespace SysOpenLang {
 	class Languages {
 		public static function is_valid( $code ) { return in_array( $code, array( 'en', 'es', 'fr' ), true ); }
 		public static function default_code() { return 'en'; }
@@ -30,18 +30,18 @@ namespace {
 		echo "PASS: {$message}\n";
 	}
 
-	\OpenLingua\Translations::$rows[1] = (object) array( 'language' => 'es' );
-	\OpenLingua\Translations::$rows[2] = (object) array( 'language' => 'en' );
-	\OpenLingua\Translations::$rows[3] = (object) array( 'language' => 'es' );
+	\SysOpenLang\Translations::$rows[1] = (object) array( 'language' => 'es' );
+	\SysOpenLang\Translations::$rows[2] = (object) array( 'language' => 'en' );
+	\SysOpenLang\Translations::$rows[3] = (object) array( 'language' => 'es' );
 
 	$wpdb->conflicts = array( 2 );
-	slug_assert( 'sample-entry', \OpenLingua\Content::allow_slug_across_languages( 'sample-entry-2', 1, 'publish', 'sample_type', 0, 'sample-entry' ), 'allows the same slug in a different language' );
+	slug_assert( 'sample-entry', \SysOpenLang\Content::allow_slug_across_languages( 'sample-entry-2', 1, 'publish', 'sample_type', 0, 'sample-entry' ), 'allows the same slug in a different language' );
 
 	$wpdb->conflicts = array( 3 );
-	slug_assert( 'sample-entry-2', \OpenLingua\Content::allow_slug_across_languages( 'sample-entry-2', 1, 'publish', 'sample_type', 0, 'sample-entry' ), 'keeps WordPress uniqueness within the same language' );
+	slug_assert( 'sample-entry-2', \SysOpenLang\Content::allow_slug_across_languages( 'sample-entry-2', 1, 'publish', 'sample_type', 0, 'sample-entry' ), 'keeps WordPress uniqueness within the same language' );
 
 	$wpdb->conflicts = array( 99 );
-	slug_assert( 'sample-entry', \OpenLingua\Content::allow_slug_across_languages( 'sample-entry-2', 1, 'publish', 'sample_type', 0, 'sample-entry' ), 'treats unassigned legacy content as the default language' );
+	slug_assert( 'sample-entry', \SysOpenLang\Content::allow_slug_across_languages( 'sample-entry-2', 1, 'publish', 'sample_type', 0, 'sample-entry' ), 'treats unassigned legacy content as the default language' );
 
-	echo "All OpenLingua translated slug tests passed.\n";
+	echo "All SysOpenLang translated slug tests passed.\n";
 }

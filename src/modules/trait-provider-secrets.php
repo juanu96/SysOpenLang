@@ -1,5 +1,5 @@
 <?php
-namespace OpenLingua\Modules;
+namespace SysOpenLang\Modules;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -22,7 +22,7 @@ trait Provider_Secrets {
 		$text = trim( preg_replace( '/^```(?:json)?\s*|\s*```$/i', '', trim( $text ) ) );
 		$result = json_decode( $text, true );
 		/* translators: %s: translation provider name. */
-		if ( ! is_array( $result ) ) { return new \WP_Error( 'openlingua_' . $provider . '_response', sprintf( __( '%s returned a response that OpenLingua could not read.', 'openlingua' ), ucfirst( $provider ) ) ); }
+		if ( ! is_array( $result ) ) { return new \WP_Error( 'openlingua_' . $provider . '_response', sprintf( __( '%s returned a response that SysOpenLang could not read.', 'sysopenlang' ), ucfirst( $provider ) ) ); }
 		return array_intersect_key( $result, $segments );
 	}
 	private static function translation_prompt( array $segments, $source_language, $target_language ) {

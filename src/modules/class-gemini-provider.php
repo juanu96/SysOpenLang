@@ -1,8 +1,8 @@
 <?php
-namespace OpenLingua\Modules;
+namespace SysOpenLang\Modules;
 
-use OpenLingua\Contracts\Module;
-use OpenLingua\Contracts\Translation_Provider;
+use SysOpenLang\Contracts\Module;
+use SysOpenLang\Contracts\Translation_Provider;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -18,19 +18,19 @@ final class Gemini_Provider implements Module, Translation_Provider {
 	public static function settings_section() {
 		$s = self::settings(); $configured = '' !== self::api_key(); $models = self::models();
 		echo '<form id="openlingua-gemini" class="openlingua-provider-panel" data-openlingua-provider-panel="gemini" role="tabpanel" method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="openlingua_save_gemini">'; wp_nonce_field( 'openlingua_save_gemini' );
-		echo '<section class="openlingua-card"><h2>' . esc_html__( 'Automatic translation with Gemini', 'openlingua' ) . '</h2><p>' . esc_html__( 'Connect your Google AI Studio Gemini API key.', 'openlingua' ) . '</p>';
+		echo '<section class="openlingua-card"><h2>' . esc_html__( 'Automatic translation with Gemini', 'sysopenlang' ) . '</h2><p>' . esc_html__( 'Connect your Google AI Studio Gemini API key.', 'sysopenlang' ) . '</p>';
 		Providers::setup_guide( array(
-			array( 'text' => __( 'Sign in to Google AI Studio with your Google account.', 'openlingua' ), 'url' => 'https://aistudio.google.com/', 'label' => __( 'Google AI Studio', 'openlingua' ) ),
-			array( 'text' => __( 'Accept the terms and select or import a Google Cloud project.', 'openlingua' ) ),
-			array( 'text' => __( 'Create a Gemini API key for that project.', 'openlingua' ), 'url' => 'https://aistudio.google.com/apikey', 'label' => __( 'Create API key', 'openlingua' ) ),
-			array( 'text' => __( 'Copy the key and paste it below.', 'openlingua' ) ),
-		), __( 'Availability and free usage limits depend on the selected model, project, and region.', 'openlingua' ) );
-		echo '<table class="form-table" role="presentation"><tr><th><label for="openlingua-gemini-key">' . esc_html__( 'Gemini API key', 'openlingua' ) . '</label></th><td><input id="openlingua-gemini-key" class="regular-text" type="password" name="api_key" autocomplete="new-password">';
-		if ( $configured ) { echo '<p class="description"><strong>' . esc_html__( 'A key is configured.', 'openlingua' ) . '</strong> ' . esc_html__( 'Leave empty to keep it.', 'openlingua' ) . '</p><label><input type="checkbox" name="clear_api_key" value="1"> ' . esc_html__( 'Remove the saved key', 'openlingua' ) . '</label>'; }
-		echo '</td></tr><tr><th><label for="openlingua-gemini-model">' . esc_html__( 'Model', 'openlingua' ) . '</label></th><td><select id="openlingua-gemini-model" name="model">'; foreach ( $models as $id => $label ) { echo '<option value="' . esc_attr( $id ) . '"' . selected( $s['model'], $id, false ) . '>' . esc_html( $label ) . '</option>'; } echo '</select></td></tr><tr><th>' . esc_html__( 'Active provider', 'openlingua' ) . '</th><td><label><input type="radio" name="activate_provider" value="1"' . checked( Providers::active_id(), 'gemini', false ) . '> ' . esc_html__( 'Use Gemini for automatic translations', 'openlingua' ) . '</label></td></tr></table>'; submit_button( __( 'Save Gemini settings', 'openlingua' ) ); echo '</section></form>';
+			array( 'text' => __( 'Sign in to Google AI Studio with your Google account.', 'sysopenlang' ), 'url' => 'https://aistudio.google.com/', 'label' => __( 'Google AI Studio', 'sysopenlang' ) ),
+			array( 'text' => __( 'Accept the terms and select or import a Google Cloud project.', 'sysopenlang' ) ),
+			array( 'text' => __( 'Create a Gemini API key for that project.', 'sysopenlang' ), 'url' => 'https://aistudio.google.com/apikey', 'label' => __( 'Create API key', 'sysopenlang' ) ),
+			array( 'text' => __( 'Copy the key and paste it below.', 'sysopenlang' ) ),
+		), __( 'Availability and free usage limits depend on the selected model, project, and region.', 'sysopenlang' ) );
+		echo '<table class="form-table" role="presentation"><tr><th><label for="openlingua-gemini-key">' . esc_html__( 'Gemini API key', 'sysopenlang' ) . '</label></th><td><input id="openlingua-gemini-key" class="regular-text" type="password" name="api_key" autocomplete="new-password">';
+		if ( $configured ) { echo '<p class="description"><strong>' . esc_html__( 'A key is configured.', 'sysopenlang' ) . '</strong> ' . esc_html__( 'Leave empty to keep it.', 'sysopenlang' ) . '</p><label><input type="checkbox" name="clear_api_key" value="1"> ' . esc_html__( 'Remove the saved key', 'sysopenlang' ) . '</label>'; }
+		echo '</td></tr><tr><th><label for="openlingua-gemini-model">' . esc_html__( 'Model', 'sysopenlang' ) . '</label></th><td><select id="openlingua-gemini-model" name="model">'; foreach ( $models as $id => $label ) { echo '<option value="' . esc_attr( $id ) . '"' . selected( $s['model'], $id, false ) . '>' . esc_html( $label ) . '</option>'; } echo '</select></td></tr><tr><th>' . esc_html__( 'Active provider', 'sysopenlang' ) . '</th><td><label><input type="radio" name="activate_provider" value="1"' . checked( Providers::active_id(), 'gemini', false ) . '> ' . esc_html__( 'Use Gemini for automatic translations', 'sysopenlang' ) . '</label></td></tr></table>'; submit_button( __( 'Save Gemini settings', 'sysopenlang' ) ); echo '</section></form>';
 	}
 	public static function save_settings() {
-		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'openlingua' ) ); } check_admin_referer( 'openlingua_save_gemini' ); $s = self::settings(); $encrypted = ! empty( $_POST['clear_api_key'] ) ? '' : $s['api_key']; $key = sanitize_text_field( wp_unslash( $_POST['api_key'] ?? '' ) ); if ( '' !== $key ) { $encrypted = self::encrypt_secret( $key ); }
+		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'sysopenlang' ) ); } check_admin_referer( 'openlingua_save_gemini' ); $s = self::settings(); $encrypted = ! empty( $_POST['clear_api_key'] ) ? '' : $s['api_key']; $key = sanitize_text_field( wp_unslash( $_POST['api_key'] ?? '' ) ); if ( '' !== $key ) { $encrypted = self::encrypt_secret( $key ); }
 		update_option( self::OPTION, array( 'api_key' => $encrypted, 'model' => sanitize_text_field( wp_unslash( $_POST['model'] ?? 'gemini-3.5-flash-lite' ) ) ), false ); if ( $encrypted && ! empty( $_POST['activate_provider'] ) ) { Providers::activate( 'gemini' ); } delete_transient( 'openlingua_gemini_models' ); wp_safe_redirect( add_query_arg( array( 'page' => 'openlingua-fields', 'section' => 'gemini' ), admin_url( 'admin.php' ) ) ); exit;
 	}
 	private static function models() {
@@ -39,7 +39,7 @@ final class Gemini_Provider implements Module, Translation_Provider {
 		$body = json_decode( wp_remote_retrieve_body( $r ), true ); $models = array(); foreach ( (array) ( $body['models'] ?? array() ) as $m ) { $methods = (array) ( $m['supportedGenerationMethods'] ?? array() ); if ( in_array( 'generateContent', $methods, true ) ) { $id = preg_replace( '#^models/#', '', $m['name'] ?? '' ); if ( $id && false === stripos( $id, 'image' ) ) { $models[ $id ] = $m['displayName'] ?? $id; } } } if ( ! $models ) { $models = $fallback; } set_transient( 'openlingua_gemini_models', $models, 12 * HOUR_IN_SECONDS ); return array( $current => $models[ $current ] ?? $current ) + $models;
 	}
 	public function translate( array $segments, $source_language, $target_language, array $context = array() ) {
-		$key = self::api_key(); if ( ! $key ) { return new \WP_Error( 'openlingua_gemini_key', __( 'The Gemini API key is not configured.', 'openlingua' ) ); } $segments = array_filter( array_map( 'strval', $segments ), static function( $v ) { return '' !== trim( $v ); } ); $translated = array();
+		$key = self::api_key(); if ( ! $key ) { return new \WP_Error( 'openlingua_gemini_key', __( 'The Gemini API key is not configured.', 'sysopenlang' ) ); } $segments = array_filter( array_map( 'strval', $segments ), static function( $v ) { return '' !== trim( $v ); } ); $translated = array();
 		$batch_size = max( 5, absint( Site_Settings::get()['batch_size'] ) );
 		foreach ( array_chunk( $segments, $batch_size, true ) as $batch ) { $properties = array(); foreach ( $batch as $id => $value ) { $properties[ $id ] = array( 'type' => 'STRING' ); }
 			$payload = array( 'contents' => array( array( 'parts' => array( array( 'text' => self::translation_prompt( $batch, $source_language, $target_language ) ) ) ) ), 'generationConfig' => array( 'responseMimeType' => 'application/json', 'responseSchema' => array( 'type' => 'OBJECT', 'properties' => $properties, 'required' => array_keys( $properties ) ) ) );

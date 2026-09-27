@@ -1,8 +1,8 @@
 <?php
-namespace OpenLingua\Modules;
+namespace SysOpenLang\Modules;
 
-use OpenLingua\Contracts\Module;
-use OpenLingua\Contracts\Translation_Provider;
+use SysOpenLang\Contracts\Module;
+use SysOpenLang\Contracts\Translation_Provider;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -41,25 +41,25 @@ final class OpenAI_Provider implements Module, Translation_Provider {
 		$models = self::available_models();
 		echo '<form id="openlingua-openai" class="openlingua-provider-panel" data-openlingua-provider-panel="openai" role="tabpanel" method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="openlingua_save_openai">';
 		wp_nonce_field( 'openlingua_save_openai' );
-		echo '<section class="openlingua-card"><h2>' . esc_html__( 'Automatic translation with OpenAI', 'openlingua' ) . '</h2>';
-		echo '<p>' . esc_html__( 'Connect your own OpenAI API account. OpenLingua sends only the content selected for an automatic translation job.', 'openlingua' ) . '</p>';
+		echo '<section class="openlingua-card"><h2>' . esc_html__( 'Automatic translation with OpenAI', 'sysopenlang' ) . '</h2>';
+		echo '<p>' . esc_html__( 'Connect your own OpenAI API account. SysOpenLang sends only the content selected for an automatic translation job.', 'sysopenlang' ) . '</p>';
 		Providers::setup_guide( array(
-			array( 'text' => __( 'Sign in to the OpenAI Platform or create an account.', 'openlingua' ), 'url' => 'https://platform.openai.com/', 'label' => __( 'OpenAI Platform', 'openlingua' ) ),
-			array( 'text' => __( 'Open API keys and create a new secret key.', 'openlingua' ), 'url' => 'https://platform.openai.com/api-keys', 'label' => __( 'API keys', 'openlingua' ) ),
-			array( 'text' => __( 'Add API billing or credits to the project if needed.', 'openlingua' ), 'url' => 'https://platform.openai.com/settings/organization/billing/overview', 'label' => __( 'API billing', 'openlingua' ) ),
-			array( 'text' => __( 'Copy the key when it is shown and paste it below.', 'openlingua' ) ),
-		), __( 'A ChatGPT subscription does not include OpenAI API usage.', 'openlingua' ) );
-		echo '<table class="form-table" role="presentation"><tr><th scope="row"><label for="openlingua-openai-key">' . esc_html__( 'OpenAI API key', 'openlingua' ) . '</label></th><td><input id="openlingua-openai-key" class="regular-text" type="password" name="api_key" value="" autocomplete="new-password" placeholder="sk-…">';
-		if ( $configured ) { echo '<p class="description"><strong>' . esc_html__( 'A key is configured.', 'openlingua' ) . '</strong> ' . esc_html__( 'Leave this field empty to keep it.', 'openlingua' ) . '</p><label><input type="checkbox" name="clear_api_key" value="1"> ' . esc_html__( 'Remove the saved key', 'openlingua' ) . '</label>'; }
-		echo '</td></tr><tr><th scope="row"><label for="openlingua-openai-model">' . esc_html__( 'Model', 'openlingua' ) . '</label></th><td><select id="openlingua-openai-model" name="model">';
+			array( 'text' => __( 'Sign in to the OpenAI Platform or create an account.', 'sysopenlang' ), 'url' => 'https://platform.openai.com/', 'label' => __( 'OpenAI Platform', 'sysopenlang' ) ),
+			array( 'text' => __( 'Open API keys and create a new secret key.', 'sysopenlang' ), 'url' => 'https://platform.openai.com/api-keys', 'label' => __( 'API keys', 'sysopenlang' ) ),
+			array( 'text' => __( 'Add API billing or credits to the project if needed.', 'sysopenlang' ), 'url' => 'https://platform.openai.com/settings/organization/billing/overview', 'label' => __( 'API billing', 'sysopenlang' ) ),
+			array( 'text' => __( 'Copy the key when it is shown and paste it below.', 'sysopenlang' ) ),
+		), __( 'A ChatGPT subscription does not include OpenAI API usage.', 'sysopenlang' ) );
+		echo '<table class="form-table" role="presentation"><tr><th scope="row"><label for="openlingua-openai-key">' . esc_html__( 'OpenAI API key', 'sysopenlang' ) . '</label></th><td><input id="openlingua-openai-key" class="regular-text" type="password" name="api_key" value="" autocomplete="new-password" placeholder="sk-…">';
+		if ( $configured ) { echo '<p class="description"><strong>' . esc_html__( 'A key is configured.', 'sysopenlang' ) . '</strong> ' . esc_html__( 'Leave this field empty to keep it.', 'sysopenlang' ) . '</p><label><input type="checkbox" name="clear_api_key" value="1"> ' . esc_html__( 'Remove the saved key', 'sysopenlang' ) . '</label>'; }
+		echo '</td></tr><tr><th scope="row"><label for="openlingua-openai-model">' . esc_html__( 'Model', 'sysopenlang' ) . '</label></th><td><select id="openlingua-openai-model" name="model">';
 		foreach ( $models as $model ) { echo '<option value="' . esc_attr( $model ) . '"' . selected( $settings['model'], $model, false ) . '>' . esc_html( self::model_label( $model ) ) . '</option>'; }
-		echo '</select><p class="description">' . ( $configured ? esc_html__( 'Models available to the configured OpenAI project. The list is refreshed automatically.', 'openlingua' ) : esc_html__( 'Save an API key to load the models available to your OpenAI project.', 'openlingua' ) ) . '</p></td></tr><tr><th scope="row">' . esc_html__( 'Active provider', 'openlingua' ) . '</th><td><label><input type="radio" name="activate_provider" value="1"' . checked( Providers::active_id(), self::ID, false ) . '> ' . esc_html__( 'Use OpenAI for automatic translations', 'openlingua' ) . '</label></td></tr></table>';
-		submit_button( __( 'Save OpenAI settings', 'openlingua' ) );
+		echo '</select><p class="description">' . ( $configured ? esc_html__( 'Models available to the configured OpenAI project. The list is refreshed automatically.', 'sysopenlang' ) : esc_html__( 'Save an API key to load the models available to your OpenAI project.', 'sysopenlang' ) ) . '</p></td></tr><tr><th scope="row">' . esc_html__( 'Active provider', 'sysopenlang' ) . '</th><td><label><input type="radio" name="activate_provider" value="1"' . checked( Providers::active_id(), self::ID, false ) . '> ' . esc_html__( 'Use OpenAI for automatic translations', 'sysopenlang' ) . '</label></td></tr></table>';
+		submit_button( __( 'Save OpenAI settings', 'sysopenlang' ) );
 		echo '</section></form>';
 	}
 
 	public static function save_settings() {
-		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'openlingua' ) ); }
+		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Permission denied.', 'sysopenlang' ) ); }
 		check_admin_referer( 'openlingua_save_openai' );
 		$current = self::settings();
 		$model = sanitize_text_field( wp_unslash( $_POST['model'] ?? '' ) );
@@ -110,9 +110,9 @@ final class OpenAI_Provider implements Module, Translation_Provider {
 
 	private static function model_label( $id ) {
 		$labels = array(
-			'gpt-5.6-terra' => 'GPT-5.6 Terra — ' . __( 'Balanced', 'openlingua' ),
-			'gpt-5.6-luna' => 'GPT-5.6 Luna — ' . __( 'Lower cost', 'openlingua' ),
-			'gpt-5.6-sol' => 'GPT-5.6 Sol — ' . __( 'Highest quality', 'openlingua' ),
+			'gpt-5.6-terra' => 'GPT-5.6 Terra — ' . __( 'Balanced', 'sysopenlang' ),
+			'gpt-5.6-luna' => 'GPT-5.6 Luna — ' . __( 'Lower cost', 'sysopenlang' ),
+			'gpt-5.6-sol' => 'GPT-5.6 Sol — ' . __( 'Highest quality', 'sysopenlang' ),
 		);
 		return $labels[ $id ] ?? $id;
 	}
@@ -131,12 +131,12 @@ final class OpenAI_Provider implements Module, Translation_Provider {
 		$source_id = absint( $_GET['source_id'] ?? 0 );
 		$target_id = absint( $_GET['target_id'] ?? 0 );
 		check_admin_referer( 'openlingua_enqueue_openai_' . $target_id );
-		if ( ! current_user_can( 'edit_post', $source_id ) || ! current_user_can( 'edit_post', $target_id ) ) { wp_die( esc_html__( 'You cannot translate this content.', 'openlingua' ) ); }
-		$target = \OpenLingua\Translations::row( 'post', $target_id );
-		$source = \OpenLingua\Translations::row( 'post', $source_id );
-		if ( ! $source || ! $target || $source->group_uuid !== $target->group_uuid ) { wp_die( esc_html__( 'These posts are not linked translations.', 'openlingua' ) ); }
+		if ( ! current_user_can( 'edit_post', $source_id ) || ! current_user_can( 'edit_post', $target_id ) ) { wp_die( esc_html__( 'You cannot translate this content.', 'sysopenlang' ) ); }
+		$target = \SysOpenLang\Translations::row( 'post', $target_id );
+		$source = \SysOpenLang\Translations::row( 'post', $source_id );
+		if ( ! $source || ! $target || $source->group_uuid !== $target->group_uuid ) { wp_die( esc_html__( 'These posts are not linked translations.', 'sysopenlang' ) ); }
 		$return_to = wp_validate_redirect( esc_url_raw( wp_unslash( $_GET['return_to'] ?? '' ) ), '' );
-		$editor_url = \OpenLingua\Translation_Editor::url( $source_id, $target_id, $return_to );
+		$editor_url = \SysOpenLang\Translation_Editor::url( $source_id, $target_id, $return_to );
 		$job_id = Jobs::enqueue( $source_id, $target_id, $target->language, self::ID );
 		if ( is_wp_error( $job_id ) ) { wp_safe_redirect( add_query_arg( 'automatic_translation', 'error', $editor_url ) ); exit; }
 		wp_safe_redirect( add_query_arg( array( 'automatic_translation' => 'queued', 'job_id' => $job_id ), $editor_url ) );
@@ -145,7 +145,7 @@ final class OpenAI_Provider implements Module, Translation_Provider {
 
 	public function translate( array $segments, $source_language, $target_language, array $context = array() ) {
 		$key = self::api_key();
-		if ( '' === $key ) { return new \WP_Error( 'openlingua_openai_key', __( 'The OpenAI API key is not configured.', 'openlingua' ) ); }
+		if ( '' === $key ) { return new \WP_Error( 'openlingua_openai_key', __( 'The OpenAI API key is not configured.', 'sysopenlang' ) ); }
 		$segments = array_filter( array_map( 'strval', $segments ), static function( $value ) { return '' !== trim( $value ); } );
 		if ( ! $segments ) { return array(); }
 		$translated = array();
@@ -174,12 +174,12 @@ final class OpenAI_Provider implements Module, Translation_Provider {
 		$body = json_decode( wp_remote_retrieve_body( $response ), true );
 		if ( $status < 200 || $status >= 300 ) {
 			/* translators: %d: HTTP response status code. */
-			$message = $body['error']['message'] ?? sprintf( __( 'OpenAI returned HTTP status %d.', 'openlingua' ), $status );
+			$message = $body['error']['message'] ?? sprintf( __( 'OpenAI returned HTTP status %d.', 'sysopenlang' ), $status );
 			return new \WP_Error( 'openlingua_openai_api', sanitize_text_field( $message ) );
 		}
 		$text = self::response_text( $body );
 		$result = json_decode( $text, true );
-		if ( ! is_array( $result ) ) { return new \WP_Error( 'openlingua_openai_response', __( 'OpenAI returned a response that OpenLingua could not read.', 'openlingua' ) ); }
+		if ( ! is_array( $result ) ) { return new \WP_Error( 'openlingua_openai_response', __( 'OpenAI returned a response that SysOpenLang could not read.', 'sysopenlang' ) ); }
 		return array_intersect_key( $result, $segments );
 	}
 

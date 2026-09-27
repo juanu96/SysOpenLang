@@ -1,5 +1,5 @@
 <?php
-$wordpress_root = getenv( 'OPENLINGUA_WP_ROOT' ) ?: dirname( __DIR__, 4 );
+$wordpress_root = getenv( 'SYSOPENLANG_WP_ROOT' ) ?: dirname( __DIR__, 4 );
 define( 'ABSPATH', rtrim( $wordpress_root, '/\\' ) . '/' );
 
 function __( $text ) { return $text; }
@@ -51,10 +51,10 @@ $content = '<!-- wp:heading --><h2 class="wp-block-heading">Clean energy</h2><!-
 	. '<!-- wp:table --><figure class="wp-block-table"><table><thead><tr><th>Service</th><th>Price</th></tr></thead><tbody><tr><td>Solar plan</td><td><strong>Free estimate</strong></td></tr></tbody><caption>Available plans</caption></table></figure><!-- /wp:table -->'
 	. '<!-- wp:acme/card {"title":"A better future","settings":{"description":"Made for every family.","color":"blue"},"className":"hero-card"} /-->';
 
-$segments = \OpenLingua\Gutenberg_Content::extract( $content );
-$values = \OpenLingua\Gutenberg_Content::values( $content );
+$segments = \SysOpenLang\Gutenberg_Content::extract( $content );
+$values = \SysOpenLang\Gutenberg_Content::values( $content );
 
-gutenberg_assert( \OpenLingua\Gutenberg_Content::is_gutenberg( $content ), 'detects Gutenberg block content' );
+gutenberg_assert( \SysOpenLang\Gutenberg_Content::is_gutenberg( $content ), 'detects Gutenberg block content' );
 gutenberg_assert( in_array( '<h2 class="wp-block-heading">Clean energy</h2>', $values, true ), 'extracts heading HTML without block comments' );
 gutenberg_assert( in_array( 'Explore services', $values, true ), 'extracts a custom text attribute' );
 gutenberg_assert( in_array( 'Made for every family.', $values, true ), 'extracts nested third-party block attributes' );
@@ -74,7 +74,7 @@ foreach ( $segments as $segment ) {
 	if ( '<strong>Free estimate</strong>' === $segment['value'] ) { $translations[ $segment['id'] ] = '<strong>Cotización gratuita</strong>'; }
 	if ( 'Available plans' === $segment['value'] ) { $translations[ $segment['id'] ] = 'Planes disponibles'; }
 }
-$translated = \OpenLingua\Gutenberg_Content::apply( $content, $translations );
+$translated = \SysOpenLang\Gutenberg_Content::apply( $content, $translations );
 
 gutenberg_assert( false !== strpos( $translated, 'Energía limpia' ), 'replaces native block HTML' );
 gutenberg_assert( false !== strpos( $translated, 'Explorar servicios' ), 'replaces block attributes' );
@@ -89,10 +89,10 @@ gutenberg_assert( count( parse_blocks( $translated ) ) === count( parse_blocks( 
 $old_blocks = '<!-- wp:paragraph --><p>First message</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Second message</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Third message</p><!-- /wp:paragraph -->';
 $old_block_translation = '<!-- wp:paragraph --><p>Primer mensaje</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Segundo mensaje</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Tercer mensaje</p><!-- /wp:paragraph -->';
 $reordered_blocks = '<!-- wp:paragraph --><p>Third message</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>First message</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>New message</p><!-- /wp:paragraph -->';
-$aligned_blocks = \OpenLingua\Gutenberg_Content::aligned_values( $reordered_blocks, $old_block_translation, \OpenLingua\Gutenberg_Content::source_snapshot( $old_blocks ) );
-$reordered_segments = \OpenLingua\Gutenberg_Content::extract( $reordered_blocks );
+$aligned_blocks = \SysOpenLang\Gutenberg_Content::aligned_values( $reordered_blocks, $old_block_translation, \SysOpenLang\Gutenberg_Content::source_snapshot( $old_blocks ) );
+$reordered_segments = \SysOpenLang\Gutenberg_Content::extract( $reordered_blocks );
 gutenberg_assert( '<p>Tercer mensaje</p>' === $aligned_blocks[ $reordered_segments[0]['id'] ], 'keeps a translated block attached after reordering' );
 gutenberg_assert( '<p>Primer mensaje</p>' === $aligned_blocks[ $reordered_segments[1]['id'] ], 'reconciles another translated block independently of position' );
 gutenberg_assert( '' === $aligned_blocks[ $reordered_segments[2]['id'] ], 'leaves newly inserted blocks empty for translation' );
 
-echo "All OpenLingua Gutenberg extractor tests passed.\n";
+echo "All SysOpenLang Gutenberg extractor tests passed.\n";

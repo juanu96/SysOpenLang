@@ -1,7 +1,7 @@
 (function () {
 	'use strict';
 
-	var config = window.OpenLinguaShortcodes;
+	var config = window.SysOpenLangShortcodes;
 	if (!config || !config.endpoint) return;
 
 	var attributes = ['aria-label', 'alt', 'placeholder', 'title'];

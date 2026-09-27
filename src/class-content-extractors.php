@@ -1,7 +1,7 @@
 <?php
-namespace OpenLingua;
+namespace SysOpenLang;
 
-use OpenLingua\Contracts\Content_Extractor;
+use SysOpenLang\Contracts\Content_Extractor;
 
 defined( 'ABSPATH' ) || exit;
 

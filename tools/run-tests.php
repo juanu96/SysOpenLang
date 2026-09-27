@@ -1,5 +1,5 @@
 <?php
-/** Run every standalone OpenLingua regression test. */
+/** Run every standalone SysOpenLang regression test. */
 
 if ( PHP_SAPI !== 'cli' ) {
 	exit( 1 );
@@ -21,4 +21,4 @@ if ( $failed ) {
 	exit( 1 );
 }
 
-fwrite( STDOUT, sprintf( "OpenLingua: %d test files passed.\n", count( $tests ) ) );
+fwrite( STDOUT, sprintf( "SysOpenLang: %d test files passed.\n", count( $tests ) ) );
