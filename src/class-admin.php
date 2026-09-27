@@ -51,7 +51,7 @@ final class Admin {
 			echo '<option value="' . esc_attr( $code ) . '" ' . selected( $current, $code, false ) . '>' . esc_html( $language['name'] ) . '</option>';
 		}
 		echo '</select>';
-		echo wp_nonce_field( 'openlingua_admin_language', 'openlingua_admin_language_nonce', true, false );
+		wp_nonce_field( 'openlingua_admin_language', 'openlingua_admin_language_nonce' );
 	}
 
 	public static function content_language() {
