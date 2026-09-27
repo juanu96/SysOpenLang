@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.20.36
+- Add the WordPress.org review fixes for admin nonces, translation-editor request validation, shortcode-editor request validation, dynamic-block output sanitization, and SEO translation sanitization.
+- Keep the final release ZIP free of development-only tests, tools, Git metadata, and GitHub workflow files.
+
 ## 1.20.35
 - Prevent Divi color and anchor values from being rewritten as localized URLs.
 - Return fallback shortcode strings without REST errors when a dynamic shortcode is unavailable during the REST request.

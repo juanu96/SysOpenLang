@@ -3,7 +3,7 @@
  * Plugin Name: SysOpenLang
  * Plugin URI:  https://wordpress.org/plugins/sysopenlang/
  * Description: Multilingual content, custom post types, custom fields and strings for WordPress.
- * Version:     1.20.35
+ * Version:     1.20.36
  * Requires at least: 6.4
  * Requires PHP: 7.4
  * Author:      SysOpenLang Contributors
@@ -29,7 +29,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'SYSOPENLANG_VERSION', '1.20.35' );
+define( 'SYSOPENLANG_VERSION', '1.20.36' );
 define( 'SYSOPENLANG_FILE', __FILE__ );
 define( 'SYSOPENLANG_DIR', plugin_dir_path( __FILE__ ) );
 

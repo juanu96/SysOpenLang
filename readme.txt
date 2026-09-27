@@ -4,7 +4,7 @@ Tags: multilingual, translation, languages, custom post types, localization
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.20.35
+Stable tag: 1.20.36
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -119,6 +119,9 @@ No. SysOpenLang outputs language-aware URLs and SEO metadata, but indexing decis
 They are preserved by default. See the Privacy section for the explicit cleanup options.
 
 == Changelog ==
+
+= 1.20.36 =
+* Add the WordPress.org review fixes for admin nonces, translation-editor request validation, shortcode-editor request validation, dynamic-block output sanitization, and SEO translation sanitization.
 
 = 1.20.14 =
 * Adds language-scoped public taxonomy slugs, so translated term URLs can use the requested slug while WordPress retains a collision-safe internal slug.
