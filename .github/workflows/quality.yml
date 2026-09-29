@@ -54,13 +54,17 @@ jobs:
           coverage: none
 
       - name: Build distributable archive
-        run: php tools/build-release.php
+        id: build
+        shell: bash
+        run: |
+          ARCHIVE_PATH="$(php tools/build-release.php)"
+          echo "archive_path=$ARCHIVE_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Extract distributable archive
         shell: bash
         run: |
           mkdir -p build
-          unzip -q sysopenlang.zip -d build
+          unzip -q "${{ steps.build.outputs.archive_path }}" -d build
 
       - name: Run official Plugin Check
         uses: wordpress/plugin-check-action@v1
@@ -72,5 +76,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sysopenlang-installable
-          path: sysopenlang.zip
+          path: ${{ steps.build.outputs.archive_path }}
           if-no-files-found: error

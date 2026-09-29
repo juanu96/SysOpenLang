@@ -1,0 +1,155 @@
+name: Publish to WordPress.org
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wordpress-org-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish release to SVN
+    runs-on: ubuntu-latest
+    env:
+      PLUGIN_SLUG: sysopenlang
+      SVN_URL: https://plugins.svn.wordpress.org/sysopenlang
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Install release tools
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y subversion unzip rsync
+
+      - name: Lint production PHP
+        shell: bash
+        run: find src -name '*.php' -print0 | xargs -0 -n1 php -l && php -l sysopenlang.php && php -l uninstall.php
+
+      - name: Download WordPress parser fixture
+        shell: bash
+        run: curl --fail --silent --show-error https://wordpress.org/latest.tar.gz | tar -xz -C /tmp
+
+      - name: Run regression tests
+        run: php tools/run-tests.php
+        env:
+          SYSOPENLANG_WP_ROOT: /tmp/wordpress
+
+      - name: Build distributable archive
+        id: build
+        shell: bash
+        run: |
+          ARCHIVE_PATH="$(php tools/build-release.php)"
+          echo "archive_path=$ARCHIVE_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Detect release version
+        id: version
+        shell: bash
+        run: |
+          VERSION="$(php -r '$plugin = file_get_contents("sysopenlang.php"); preg_match("/^\s*\*\s*Version:\s*([^\s]+)/mi", $plugin, $matches); echo $matches[1] ?? "";')"
+          STABLE_TAG="$(php -r '$readme = file_get_contents("readme.txt"); preg_match("/^Stable tag:\s*([^\s]+)/mi", $readme, $matches); echo $matches[1] ?? "";')"
+
+          if [ -z "$VERSION" ]; then
+            echo "Could not detect the plugin version from sysopenlang.php."
+            exit 1
+          fi
+
+          if [ "$VERSION" != "$STABLE_TAG" ]; then
+            echo "Plugin version ($VERSION) does not match readme.txt Stable tag ($STABLE_TAG)."
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Extract distributable archive
+        shell: bash
+        run: |
+          rm -rf "$RUNNER_TEMP/${PLUGIN_SLUG}-release"
+          mkdir -p "$RUNNER_TEMP/${PLUGIN_SLUG}-release"
+          unzip -q "${{ steps.build.outputs.archive_path }}" -d "$RUNNER_TEMP/${PLUGIN_SLUG}-release"
+
+      - name: Check WordPress.org credentials
+        shell: bash
+        env:
+          WP_ORG_USERNAME: ${{ secrets.WP_ORG_USERNAME }}
+          WP_ORG_PASSWORD: ${{ secrets.WP_ORG_PASSWORD }}
+        run: |
+          if [ -z "$WP_ORG_USERNAME" ] || [ -z "$WP_ORG_PASSWORD" ]; then
+            echo "Missing WP_ORG_USERNAME or WP_ORG_PASSWORD GitHub secret."
+            exit 1
+          fi
+
+      - name: Prepare SVN checkout
+        id: svn
+        shell: bash
+        run: |
+          SVN_DIR="$RUNNER_TEMP/${PLUGIN_SLUG}-svn"
+          RELEASE_DIR="$RUNNER_TEMP/${PLUGIN_SLUG}-release/${PLUGIN_SLUG}"
+          VERSION="${{ steps.version.outputs.version }}"
+
+          rm -rf "$SVN_DIR"
+          svn checkout "$SVN_URL" "$SVN_DIR"
+
+          find "$SVN_DIR/trunk" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+          rsync -a --delete "$RELEASE_DIR/" "$SVN_DIR/trunk/"
+
+          if svn ls "$SVN_URL/tags/$VERSION" >/dev/null 2>&1; then
+            TAG_EXISTS=true
+          else
+            mkdir -p "$SVN_DIR/tags/$VERSION"
+            rsync -a "$RELEASE_DIR/" "$SVN_DIR/tags/$VERSION/"
+            TAG_EXISTS=false
+          fi
+
+          cd "$SVN_DIR"
+          svn add --force trunk tags
+          svn status | awk '/^!/ {print $2}' | xargs -r svn delete --force
+
+          if [ -z "$(svn status)" ]; then
+            CHANGED=false
+          else
+            CHANGED=true
+          fi
+
+          echo "tag_exists=$TAG_EXISTS" >> "$GITHUB_OUTPUT"
+          echo "changed=$CHANGED" >> "$GITHUB_OUTPUT"
+
+          if [ "$TAG_EXISTS" = "true" ] && [ "$CHANGED" = "true" ]; then
+            echo "SVN tag $VERSION already exists, but trunk would change. Bump the plugin version before publishing."
+            svn status
+            exit 1
+          fi
+
+      - name: Commit to WordPress.org SVN
+        if: steps.svn.outputs.changed == 'true'
+        shell: bash
+        env:
+          WP_ORG_USERNAME: ${{ secrets.WP_ORG_USERNAME }}
+          WP_ORG_PASSWORD: ${{ secrets.WP_ORG_PASSWORD }}
+        run: |
+          cd "$RUNNER_TEMP/${PLUGIN_SLUG}-svn"
+          svn commit \
+            --username "$WP_ORG_USERNAME" \
+            --password "$WP_ORG_PASSWORD" \
+            --no-auth-cache \
+            --non-interactive \
+            -m "Release SysOpenLang ${{ steps.version.outputs.version }}"
+
+      - name: Skip unchanged release
+        if: steps.svn.outputs.changed == 'false'
+        run: echo "WordPress.org SVN already matches SysOpenLang ${{ steps.version.outputs.version }}."
